@@ -1,0 +1,148 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useWizardStore } from '@/lib/wizardStore';
+import { supabase } from '@/lib/supabase';
+import { getPriceType } from '@/lib/pricing';
+
+const DEALERS_DEFAULT = [
+  '生振商会', 'IB', '寿', 'シーエン', '原商',
+  'ギアトライム', '喜多機械', 'サーデック', 'ヤマノ', '下元',
+];
+
+export default function Step2Client() {
+  const { creator_type, client_type, client_name, update, nextStep, prevStep } = useWizardStore();
+  const [dealers, setDealers] = useState<string[]>(DEALERS_DEFAULT);
+  const [customDealer, setCustomDealer] = useState('');
+
+  useEffect(() => {
+    supabase
+      .from('dealers')
+      .select('name')
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (data && data.length > 0) setDealers(data.map((d) => d.name));
+      });
+  }, []);
+
+  function handleNext() {
+    if (!client_name.trim()) {
+      alert('見積先を入力してください');
+      return;
+    }
+    const price_type = getPriceType(creator_type, client_type);
+    update({ price_type });
+    nextStep();
+  }
+
+  if (creator_type === 'dealer') {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-gray-700">STEP 2：見積先情報</h2>
+        <div>
+          <p className="text-sm text-gray-500 mb-2">見積先種別：エンドユーザー向け（固定）</p>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            見積先名 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={client_name}
+            onChange={(e) => update({ client_name: e.target.value, client_type: 'enduser' })}
+            placeholder="会社名または個人名"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <NavButtons onPrev={prevStep} onNext={handleNext} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-700">STEP 2：見積先情報</h2>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">見積先種別</label>
+        <div className="space-y-2">
+          {[
+            { value: 'dealer', label: '①ディーラー向け' },
+            { value: 'reseller', label: '②未登録販売店向け' },
+            { value: 'enduser', label: '③エンドユーザー・その他' },
+          ].map((opt) => (
+            <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value={opt.value}
+                checked={client_type === opt.value}
+                onChange={() => update({ client_type: opt.value as typeof client_type, client_name: '' })}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {client_type === 'dealer' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ディーラー名 <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={dealers.includes(client_name) ? client_name : '__custom__'}
+            onChange={(e) => {
+              if (e.target.value !== '__custom__') update({ client_name: e.target.value });
+              else update({ client_name: customDealer });
+            }}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">選択してください</option>
+            {dealers.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+            <option value="__custom__">その他（直接入力）</option>
+          </select>
+          {(!dealers.includes(client_name) || client_name === '') && (
+            <input
+              type="text"
+              value={customDealer}
+              onChange={(e) => { setCustomDealer(e.target.value); update({ client_name: e.target.value }); }}
+              placeholder="ディーラー名を直接入力"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          )}
+        </div>
+      )}
+
+      {(client_type === 'reseller' || client_type === 'enduser') && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {client_type === 'reseller' ? '販売店名' : '会社名または個人名'}{' '}
+            <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={client_name}
+            onChange={(e) => update({ client_name: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
+
+      <NavButtons onPrev={prevStep} onNext={handleNext} />
+    </div>
+  );
+}
+
+function NavButtons({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {
+  return (
+    <div className="flex justify-between pt-4">
+      <button onClick={onPrev} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">
+        ← 戻る
+      </button>
+      <button onClick={onNext} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">
+        次へ →
+      </button>
+    </div>
+  );
+}
