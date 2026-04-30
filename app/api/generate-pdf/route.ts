@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { createElement } from 'react';
-import { QuoteTemplate } from '@/components/pdf/QuoteTemplate';
+import { generateQuoteHtml } from '@/components/pdf/QuoteTemplate';
 import { generateQuoteNumber } from '@/lib/quoteNumber';
 import { uploadPdf } from '@/lib/pdfStorage';
 import { createServiceClient } from '@/lib/supabase';
@@ -13,34 +11,23 @@ export async function POST(req: NextRequest) {
     const quoteNumber = await generateQuoteNumber();
     const createdAt = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
 
-    const html = renderToStaticMarkup(
-      createElement(QuoteTemplate, { state: body, quoteNumber, createdAt })
-    );
+    const html = generateQuoteHtml({ state: body, quoteNumber, createdAt });
 
-    let chromium: typeof import('@sparticuz/chromium');
-    let puppeteer: typeof import('puppeteer-core');
-
-    if (process.env.NODE_ENV === 'production') {
-      chromium = (await import('@sparticuz/chromium')).default as typeof import('@sparticuz/chromium');
-      puppeteer = (await import('puppeteer-core')).default as typeof import('puppeteer-core');
-    } else {
-      const localPuppeteer = await import('puppeteer-core');
-      puppeteer = localPuppeteer.default as typeof import('puppeteer-core');
-      chromium = (await import('@sparticuz/chromium')).default as typeof import('@sparticuz/chromium');
-    }
+    const chromium = (await import('@sparticuz/chromium')).default;
+    const puppeteer = (await import('puppeteer-core')).default;
 
     const browser = await (puppeteer as any).launch({
-      args: (chromium as any).args,
-      defaultViewport: (chromium as any).defaultViewport,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
       executablePath:
         process.env.NODE_ENV === 'production'
-          ? await (chromium as any).executablePath()
+          ? await chromium.executablePath()
           : process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
       headless: true,
     });
 
     const page = await browser.newPage();
-    await page.setContent(`<!DOCTYPE html>${html}`, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'networkidle0' });
     const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
     await browser.close();
 
