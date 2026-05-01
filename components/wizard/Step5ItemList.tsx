@@ -69,10 +69,6 @@ export default function Step5ItemList() {
 
     base.push({ name_ja: 'ホースプロテクション', qty: 4 });
 
-    if (machine_maker === 'CAT') {
-      base.push({ name_ja: 'この機種は標準構成です。後日詳細を設定してください。（CATスタブ）' });
-    }
-
     return base;
   }
 

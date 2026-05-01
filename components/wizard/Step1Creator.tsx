@@ -16,8 +16,16 @@ export default function Step1Creator() {
       alert('会社名を入力してください');
       return;
     }
-    const price_type = getPriceType(creator_type, client_type);
-    update({ price_type });
+    if (creator_type === 'dealer') {
+      update({
+        client_type: 'dealer',
+        client_name: creator_company,
+        price_type: 'dealer',
+      });
+    } else {
+      const price_type = getPriceType(creator_type, client_type);
+      update({ price_type });
+    }
     nextStep();
   }
 
