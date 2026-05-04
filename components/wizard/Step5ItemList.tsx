@@ -99,9 +99,26 @@ export default function Step5ItemList() {
         built.push(makeItem(sys.name_ja, p, price_type, sys.item_no, sys.qty ?? 1));
       }
     } else {
-      // DC3: 品番は別途追加予定
-      built.push(makeItem('DC3コントロールシステム一式', undefined, price_type));
-      built.push(makeItem('ホースプロテクション', undefined, price_type, undefined, 4));
+      // DC3（CATシート参照）
+      const dc3ControlNo = '8001992';
+      const dc3ControlPrice = await lookupPrice(dc3ControlNo);
+      built.push(makeItem('DC3コントロールシステム', dc3ControlPrice, price_type, dc3ControlNo));
+
+      if (mount_type === 'SW') {
+        // SW/DC3: QSCシステム
+        const dc3QscNo = '8002251';
+        const dc3QscPrice = await lookupPrice(dc3QscNo);
+        built.push(makeItem('DC3 QSCシステム', dc3QscPrice, price_type, dc3QscNo));
+      } else {
+        // DM/DC3: Qsafe
+        const qsafeNo = '8000271';
+        const qsafePrice = await lookupPrice(qsafeNo);
+        built.push(makeItem('Qsafe', qsafePrice, price_type, qsafeNo));
+      }
+
+      const hoseNo = '540190';
+      const hosePrice = await lookupPrice(hoseNo);
+      built.push(makeItem('ホースプロテクション', hosePrice, price_type, hoseNo, 2));
     }
 
     const sorted = built.map((item, i) => ({ ...item, sort_order: i + 1 }));
