@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { SStandard } from '@/types/quote';
 
@@ -16,13 +17,19 @@ export default function Step4MountStandard() {
 
   const ecOptions = EC_MODELS[s_standard];
 
+  // Auto-set ec_model when it's empty or not valid for the current s_standard
+  useEffect(() => {
+    if (!ecOptions.includes(ec_model)) {
+      update({ ec_model: ecOptions[0] });
+    }
+  }, [s_standard]);
+
   function handleSStandardChange(val: SStandard) {
     const models = EC_MODELS[val];
     update({ s_standard: val, ec_model: models[0] });
   }
 
   function handleNext() {
-    if (!ec_model) { alert('ECモデルを選択してください'); return; }
     nextStep();
   }
 
