@@ -80,7 +80,7 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
       <p>対象機種：${state.machine_maker} ${state.machine_model}</p>
       ${state.delivery_location ? `<p>取付場所：${state.delivery_location}</p>` : ''}
       ${state.note ? `<p>${state.note}</p>` : ''}
-      ${state.has_ict ? `<p>ICT取付予定あり（${state.ict_maker} ${state.ict_model}）　ICTをご利用になる場合は別途 Grade Indication for 3rd party が必要になる場合があります。</p>` : ''}
+      ${state.has_ict ? `<p>ICT取付予定あり（${state.ict_maker} ${state.ict_model}）${state.machine_maker === 'CAT' && state.dc_system === 'DC3' ? '　ICTをご利用になる場合は別途 Grade Indication for 3rd party が必要になる場合があります。またCAT DC3システムをご利用の場合は別途 SEA（Software Enablement Agreement）が必要になる場合があります。詳細はCATディーラーへお問合せください。' : ''}</p>` : ''}
     </div>` : '';
 
   return `<!DOCTYPE html>

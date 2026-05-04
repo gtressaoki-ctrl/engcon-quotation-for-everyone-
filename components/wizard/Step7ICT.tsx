@@ -3,7 +3,9 @@
 import { useWizardStore } from '@/lib/wizardStore';
 
 export default function Step7ICT() {
-  const { has_ict, ict_maker, ict_model, ict_note, update, nextStep, prevStep } = useWizardStore();
+  const { has_ict, ict_maker, ict_model, ict_note, machine_maker, dc_system, update, nextStep, prevStep } = useWizardStore();
+
+  const isCatDC3 = machine_maker === 'CAT' && dc_system === 'DC3';
 
   return (
     <div className="space-y-6">
@@ -24,10 +26,17 @@ export default function Step7ICT() {
 
       {has_ict && (
         <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-          <div className="p-3 bg-yellow-100 rounded text-sm text-yellow-800">
-            ICTをご利用になる場合は別途 Grade Indication for 3rd party が必要になる場合があります。
-            3Dについては機材メーカーへお問合せください。
-          </div>
+          {isCatDC3 && (
+            <div className="space-y-2">
+              <div className="p-3 bg-yellow-100 rounded text-sm text-yellow-800">
+                ICTをご利用になる場合は別途 Grade Indication for 3rd party が必要になる場合があります。
+                3Dについては機材メーカーへお問合せください。
+              </div>
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800">
+                CAT DC3システムをご利用の場合は、別途 SEA（Software Enablement Agreement）が必要になる場合があります。詳細はCATディーラーへお問合せください。
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">メーカー名</label>
             <input type="text" value={ict_maker} onChange={(e) => update({ ict_maker: e.target.value })}

@@ -11,7 +11,7 @@ const DEALERS_DEFAULT = [
 ];
 
 export default function Step2Client() {
-  const { creator_type, client_type, client_name, update, nextStep, prevStep } = useWizardStore();
+  const { creator_type, creator_company, client_type, client_name, update, nextStep, prevStep } = useWizardStore();
   const [dealers, setDealers] = useState<string[]>(DEALERS_DEFAULT);
   const [customDealer, setCustomDealer] = useState('');
 
@@ -39,20 +39,14 @@ export default function Step2Client() {
     return (
       <div className="space-y-6">
         <h2 className="text-xl font-semibold text-gray-700">STEP 2：見積先情報</h2>
-        <div>
-          <p className="text-sm text-gray-500 mb-2">見積先種別：エンドユーザー向け（固定）</p>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            見積先名 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={client_name}
-            onChange={(e) => update({ client_name: e.target.value, client_type: 'enduser' })}
-            placeholder="会社名または個人名"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          <p className="font-medium mb-2">見積先は自動設定されます</p>
+          <p>
+            発行元：株式会社 G.TRES　→　見積先：<strong>{creator_company}</strong>
+          </p>
+          <p className="mt-1 text-blue-600">ディーラー向け卸価格が自動適用されます。</p>
         </div>
-        <NavButtons onPrev={prevStep} onNext={handleNext} />
+        <NavButtons onPrev={prevStep} onNext={nextStep} />
       </div>
     );
   }

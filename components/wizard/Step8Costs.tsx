@@ -1,16 +1,35 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
-import type { ExtraCost } from '@/types/quote';
+import type { ExtraCost, QuoteItem } from '@/types/quote';
+
+const SKIP_KEYWORDS = ['コントロール', 'QSC', 'EXTDC', 'ホースプロテクション'];
+
+function calcPalletCount(items: QuoteItem[]): number {
+  return items.reduce((total, item) => {
+    const skip = SKIP_KEYWORDS.some((kw) => item.name_ja.includes(kw));
+    return skip ? total : total + item.qty;
+  }, 0);
+}
 
 export default function Step8Costs() {
   const {
+    creator_type, items,
     pallet_count, install_cost, hose_parts_cost,
     travel_unit_cost, travel_count, guidance_unit_cost, guidance_count,
     extra_costs, update, nextStep, prevStep,
   } = useWizardStore();
 
+  const isDealer = creator_type === 'dealer';
   const freight = pallet_count * 35000;
+
+  useEffect(() => {
+    const calc = calcPalletCount(items);
+    if (calc !== pallet_count) {
+      update({ pallet_count: calc, freight_cost: calc * 35000 });
+    }
+  }, [items]);
 
   function updateExtra(index: number, field: keyof ExtraCost, value: string | number) {
     const updated = [...extra_costs];
@@ -32,38 +51,43 @@ export default function Step8Costs() {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-700">STEP 8：費用・物流</h2>
 
-      <div className="grid grid-cols-2 gap-4 items-end">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">パレット数</label>
-          <input type="number" min={0} value={pallet_count}
-            onChange={(e) => update({ pallet_count: parseInt(e.target.value) || 0, freight_cost: (parseInt(e.target.value) || 0) * 35000 })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700">パレット数（自動計算）</p>
+            <p className="text-xs text-gray-500 mt-0.5">EC・クイックカプラ・グリッパー・アタッチメントを各1パレットでカウント</p>
+          </div>
+          <span className="text-2xl font-bold text-gray-800">{pallet_count} パレット</span>
         </div>
-        <div className="text-sm text-gray-600">国内運賃：{fmt(freight)}</div>
+        <div className="mt-2 text-sm text-gray-600">国内運賃：{fmt(freight)}</div>
       </div>
 
-      <Field label="取付費用（任意）" value={install_cost}
-        onChange={(v) => update({ install_cost: v })} />
+      {!isDealer && (
+        <>
+          <Field label="取付費用（任意）" value={install_cost}
+            onChange={(v) => update({ install_cost: v })} />
 
-      <Field label="ホース取付部材一式（任意）" value={hose_parts_cost}
-        onChange={(v) => update({ hose_parts_cost: v })} />
+          <Field label="ホース取付部材一式（任意）" value={hose_parts_cost}
+            onChange={(v) => update({ hose_parts_cost: v })} />
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="出張費用 単価" value={travel_unit_cost}
-          onChange={(v) => update({ travel_unit_cost: v })} />
-        <Field label="回数" value={travel_count} onChange={(v) => update({ travel_count: v })} />
-      </div>
-      {travel_unit_cost > 0 && travel_count > 0 && (
-        <p className="text-sm text-gray-500">出張費用合計：¥{(travel_unit_cost * travel_count).toLocaleString()}</p>
-      )}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="出張費用 単価" value={travel_unit_cost}
+              onChange={(v) => update({ travel_unit_cost: v })} />
+            <Field label="回数" value={travel_count} onChange={(v) => update({ travel_count: v })} />
+          </div>
+          {travel_unit_cost > 0 && travel_count > 0 && (
+            <p className="text-sm text-gray-500">出張費用合計：¥{(travel_unit_cost * travel_count).toLocaleString()}</p>
+          )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="納入指導費 単価" value={guidance_unit_cost}
-          onChange={(v) => update({ guidance_unit_cost: v })} />
-        <Field label="回数" value={guidance_count} onChange={(v) => update({ guidance_count: v })} />
-      </div>
-      {guidance_unit_cost > 0 && guidance_count > 0 && (
-        <p className="text-sm text-gray-500">納入指導費合計：¥{(guidance_unit_cost * guidance_count).toLocaleString()}</p>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="納入指導費 単価" value={guidance_unit_cost}
+              onChange={(v) => update({ guidance_unit_cost: v })} />
+            <Field label="回数" value={guidance_count} onChange={(v) => update({ guidance_count: v })} />
+          </div>
+          {guidance_unit_cost > 0 && guidance_count > 0 && (
+            <p className="text-sm text-gray-500">納入指導費合計：¥{(guidance_unit_cost * guidance_count).toLocaleString()}</p>
+          )}
+        </>
       )}
 
       <div>
