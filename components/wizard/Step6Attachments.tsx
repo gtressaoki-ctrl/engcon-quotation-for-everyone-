@@ -56,21 +56,25 @@ export default function Step6Attachments() {
     for (const [name, qty] of Object.entries(selected)) {
       const item_no = ATTACHMENT_ITEM_MAP[name]?.[s_standard] ?? undefined;
       let list_price: number | undefined;
+      let official_name = name;
 
       if (item_no) {
         const { data } = await supabase
           .from('price_master')
-          .select('price_jpy')
+          .select('price_jpy, description')
           .eq('item_no', item_no)
           .single();
-        if (data) list_price = data.price_jpy;
+        if (data) {
+          list_price = data.price_jpy;
+          if (data.description) official_name = data.description;
+        }
       }
 
       const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type) : undefined;
       attachmentItems.push({
         sort_order: startSort + attachmentItems.length,
         item_no,
-        name_ja: name,
+        name_ja: official_name,
         list_price,
         qty,
         unit_price,
