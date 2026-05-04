@@ -32,6 +32,7 @@ const initialState: WizardState = {
   dc_system: 'DC2',
 
   items: [],
+  pending_attachments: {},
 
   has_ict: false,
   ict_maker: '',
@@ -61,7 +62,7 @@ export const useWizardStore = create<WizardStore>((set) => ({
   ...initialState,
   currentStep: 1,
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 10) })),
+  nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 11) })),
   prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
   update: (partial) => set((s) => ({ ...s, ...partial })),
   setItems: (items) => set({ items }),

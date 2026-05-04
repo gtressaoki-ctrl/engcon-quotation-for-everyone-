@@ -44,6 +44,8 @@ export interface WizardState {
 
   items: QuoteItem[];
 
+  pending_attachments: Record<string, number>;  // category_id → qty (Step6 selection)
+
   has_ict: boolean;
   ict_maker: string;
   ict_model: string;

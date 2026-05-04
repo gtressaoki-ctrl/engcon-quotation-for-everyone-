@@ -7,6 +7,7 @@ import Step3Machine from '@/components/wizard/Step3Machine';
 import Step4MountStandard from '@/components/wizard/Step4MountStandard';
 import Step5ItemList from '@/components/wizard/Step5ItemList';
 import Step6Attachments from '@/components/wizard/Step6Attachments';
+import Step6bVariants from '@/components/wizard/Step6bVariants';
 import Step7ICT from '@/components/wizard/Step7ICT';
 import Step8Costs from '@/components/wizard/Step8Costs';
 import Step9Delivery from '@/components/wizard/Step9Delivery';
@@ -14,12 +15,12 @@ import Step10Confirm from '@/components/wizard/Step10Confirm';
 
 const STEP_LABELS = [
   '作成者情報', '見積先情報', 'ベースマシン', '取付方式・S規格',
-  '品目一覧', 'アタッチメント', 'ICT情報', '費用・物流', '納期・場所', '確認・出力',
+  '品目一覧', 'アタッチメント選択', 'アタッチメント詳細', 'ICT情報', '費用・物流', '納期・場所', '確認・出力',
 ];
 
 const STEPS = [
   Step1Creator, Step2Client, Step3Machine, Step4MountStandard,
-  Step5ItemList, Step6Attachments, Step7ICT, Step8Costs, Step9Delivery, Step10Confirm,
+  Step5ItemList, Step6Attachments, Step6bVariants, Step7ICT, Step8Costs, Step9Delivery, Step10Confirm,
 ];
 
 export default function WizardPage() {

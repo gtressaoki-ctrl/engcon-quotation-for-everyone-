@@ -31,27 +31,28 @@ export default function Step5ItemList() {
     if (items.length === 0) buildDefaultItems();
   }, []);
 
-  async function lookupPrice(item_no: string): Promise<number | undefined> {
+  async function lookup(item_no: string): Promise<{ price?: number; description?: string }> {
     const { data } = await supabase
       .from('price_master')
-      .select('price_jpy')
+      .select('price_jpy, description')
       .eq('item_no', item_no)
       .single();
-    return data?.price_jpy;
+    return { price: data?.price_jpy, description: data?.description ?? undefined };
   }
 
   function makeItem(
-    name_ja: string,
+    fallback_name: string,
     list_price: number | undefined,
     price_type_: PriceType,
     item_no?: string,
-    qty = 1
+    qty = 1,
+    official_name?: string
   ): QuoteItem {
     const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type_) : undefined;
     return {
       sort_order: 0,
       item_no,
-      name_ja,
+      name_ja: official_name ?? fallback_name,
       list_price,
       qty,
       unit_price,
@@ -65,61 +66,55 @@ export default function Step5ItemList() {
     const built: QuoteItem[] = [];
 
     // 1. チルトローテータ本体
-    // For DM, prefer catalog's ec_item_no; fall back to generic EC_ITEM_MAP
     const catalogEntry =
       lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
       fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
     const ecItemNo = (mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model];
-    const ecPrice = ecItemNo ? await lookupPrice(ecItemNo) : undefined;
-    built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ecPrice, price_type, ecItemNo));
+    const ec = ecItemNo ? await lookup(ecItemNo) : {};
+    built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
 
-    // 2. マシンヒッチ（カタログ品番自動設定 or 要確認）
+    // 2. マシンヒッチ
     const hitchItemNo = catalogEntry?.hitch_item_no ?? undefined;
-    const hitchPrice = hitchItemNo ? await lookupPrice(hitchItemNo) : undefined;
-    const hitchName = `マシンヒッチ（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
-    built.push(makeItem(hitchName, hitchPrice, price_type, hitchItemNo));
+    const hitch = hitchItemNo ? await lookup(hitchItemNo) : {};
+    const hitchFallback = `マシンヒッチ（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
+    built.push(makeItem(hitchFallback, hitch.price, price_type, hitchItemNo, 1, hitch.description));
 
     // 3. グリッパー
     const grdInfo = GRD_ITEM_MAP[s_standard];
     if (grdInfo) {
-      const grdPrice = await lookupPrice(grdInfo.item_no);
-      built.push(makeItem(grdInfo.name, grdPrice, price_type, grdInfo.item_no));
+      const grd = await lookup(grdInfo.item_no);
+      built.push(makeItem(grdInfo.name, grd.price, price_type, grdInfo.item_no, 1, grd.description));
     } else {
       built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
     }
 
     // 4. DCシステム品目
+    const lk = async (no: string) => lookup(no);
     if (dc_system === 'DC2') {
-      built.push(makeItem('DC2コントロールシステム', await lookupPrice('8002535'), price_type, '8002535'));
-      built.push(makeItem('MIG2', await lookupPrice('841528'), price_type, '841528'));
-      if (mount_type === 'SW') {
-        built.push(makeItem('QSCシステム', await lookupPrice('8002201'), price_type, '8002201'));
-      } else {
-        built.push(makeItem('Qsafe', await lookupPrice('8000271'), price_type, '8000271'));
+      for (const [no, fb, qty] of [
+        ['8002535', 'DC2コントロールシステム', 1],
+        ['841528',  'MIG2', 1],
+        ...(mount_type === 'SW'
+          ? [['8002201', 'QSCシステム', 1]]
+          : [['8000271', 'Qsafe', 1]]),
+        ['8001813', 'C2C', 1],
+        ['540190',  'ホースプロテクション', 4],
+      ] as [string, string, number][]) {
+        const r = await lk(no);
+        built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
       }
-      built.push(makeItem('C2C', await lookupPrice('8001813'), price_type, '8001813'));
-      built.push(makeItem('ホースプロテクション', await lookupPrice('540190'), price_type, '540190', 4));
     } else {
-      // DC3（CATシート参照）
-      const dc3ControlNo = '8001992';
-      const dc3ControlPrice = await lookupPrice(dc3ControlNo);
-      built.push(makeItem('DC3コントロールシステム', dc3ControlPrice, price_type, dc3ControlNo));
-
+      const dc3c = await lk('8001992');
+      built.push(makeItem('DC3コントロールシステム', dc3c.price, price_type, '8001992', 1, dc3c.description));
       if (mount_type === 'SW') {
-        // SW/DC3: QSCシステム
-        const dc3QscNo = '8002251';
-        const dc3QscPrice = await lookupPrice(dc3QscNo);
-        built.push(makeItem('DC3 QSCシステム', dc3QscPrice, price_type, dc3QscNo));
+        const qsc = await lk('8002251');
+        built.push(makeItem('DC3 QSCシステム', qsc.price, price_type, '8002251', 1, qsc.description));
       } else {
-        // DM/DC3: Qsafe
-        const qsafeNo = '8000271';
-        const qsafePrice = await lookupPrice(qsafeNo);
-        built.push(makeItem('Qsafe', qsafePrice, price_type, qsafeNo));
+        const qs = await lk('8000271');
+        built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
-
-      const hoseNo = '540190';
-      const hosePrice = await lookupPrice(hoseNo);
-      built.push(makeItem('ホースプロテクション', hosePrice, price_type, hoseNo, 2));
+      const hose = await lk('540190');
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
     }
 
     const sorted = built.map((item, i) => ({ ...item, sort_order: i + 1 }));
