@@ -4,11 +4,11 @@ import { useWizardStore } from '@/lib/wizardStore';
 import type { SStandard } from '@/types/quote';
 
 const EC_MODELS: Record<SStandard, string[]> = {
-  S40: ['EC204', 'EC206'],
-  S45: ['EC206', 'EC209'],
-  S60: ['EC214', 'EC219'],
-  S70: ['EC226', 'EC233'],
-  S80: ['EC233'],
+  S40: ['EC204B', 'EC206B'],
+  S45: ['EC206B', 'EC209B'],
+  S60: ['EC214S'],
+  S70: ['EC226S'],
+  S80: ['EC226S'],
 };
 
 export default function Step4MountStandard() {

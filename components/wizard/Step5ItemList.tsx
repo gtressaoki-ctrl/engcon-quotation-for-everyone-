@@ -6,6 +6,30 @@ import { calculateSalesPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
 import type { QuoteItem } from '@/types/quote';
 
+const EC_ITEM_MAP: Record<string, string> = {
+  EC204B: '1080111',
+  EC206B: '1068693',
+  EC209B: '1067465',
+  EC214S: '1067444',
+  EC226S: '1067394',
+};
+
+const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
+  S40: { item_no: '1065797', name: 'グリッパー GRD40' },
+  S45: { item_no: '1079540', name: 'グリッパー GRD45' },
+  S60: { item_no: '1071055', name: 'グリッパー GRD60' },
+  S70: { item_no: '1074818', name: 'グリッパー GRD70' },
+};
+
+const DC2_SYSTEM_ITEMS: { name_ja: string; item_no: string; qty?: number }[] = [
+  { name_ja: 'DC2コントロールシステム', item_no: '8002535' },
+  { name_ja: 'MIG2', item_no: '841528' },
+  { name_ja: 'QSCシステム', item_no: '8002201' },
+  { name_ja: 'Qsafe', item_no: '8000271' },
+  { name_ja: 'C2C', item_no: '8001813' },
+  { name_ja: 'ホースプロテクション', item_no: '540190', qty: 4 },
+];
+
 export default function Step5ItemList() {
   const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, items, setItems, nextStep, prevStep } = useWizardStore();
   const [loading, setLoading] = useState(false);
@@ -14,62 +38,75 @@ export default function Step5ItemList() {
     if (items.length === 0) buildDefaultItems();
   }, []);
 
-  async function buildDefaultItems() {
-    setLoading(true);
-    const defaultConfig = getDefaultConfig();
-    const built: QuoteItem[] = [];
-
-    for (let i = 0; i < defaultConfig.length; i++) {
-      const cfg = defaultConfig[i];
-      let list_price: number | undefined;
-      let item_no: string | undefined;
-
-      if (cfg.item_no) {
-        const { data } = await supabase
-          .from('price_master')
-          .select('price_jpy')
-          .eq('item_no', cfg.item_no)
-          .single();
-        if (data) { list_price = data.price_jpy; item_no = cfg.item_no; }
-      }
-
-      const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type) : undefined;
-      built.push({
-        sort_order: i + 1,
-        item_no,
-        name_ja: cfg.name_ja,
-        list_price,
-        qty: cfg.qty ?? 1,
-        unit_price,
-        amount: unit_price != null ? unit_price * (cfg.qty ?? 1) : undefined,
-        is_custom: false,
-      });
-    }
-    setItems(built);
-    setLoading(false);
+  async function lookupPrice(item_no: string): Promise<number | undefined> {
+    const { data } = await supabase
+      .from('price_master')
+      .select('price_jpy')
+      .eq('item_no', item_no)
+      .single();
+    return data?.price_jpy;
   }
 
-  function getDefaultConfig(): { name_ja: string; item_no?: string; qty?: number }[] {
-    const base: { name_ja: string; item_no?: string; qty?: number }[] = [
-      { name_ja: `チルトローテータ本体（${ec_model}）` },
-    ];
+  function makeItem(
+    name_ja: string,
+    list_price: number | undefined,
+    price_type_: string,
+    item_no?: string,
+    qty = 1
+  ): QuoteItem {
+    const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type_) : undefined;
+    return {
+      sort_order: 0,
+      item_no,
+      name_ja,
+      list_price,
+      qty,
+      unit_price,
+      amount: unit_price != null ? unit_price * qty : undefined,
+      is_custom: false,
+    };
+  }
 
-    if (mount_type === 'SW') {
-      base.push({ name_ja: `クイックカプラ（${s_standard}対応品）` });
+  async function buildDefaultItems() {
+    setLoading(true);
+    const built: QuoteItem[] = [];
+
+    // 1. チルトローテータ本体
+    const ecItemNo = EC_ITEM_MAP[ec_model];
+    const ecPrice = ecItemNo ? await lookupPrice(ecItemNo) : undefined;
+    built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ecPrice, price_type, ecItemNo));
+
+    // 2. マシンヒッチ（機種別・品番は別途確認）
+    const hitachMakers = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Yanmar'];
+    const needsHitch = mount_type === 'SW' || hitachMakers.includes(machine_maker);
+    if (needsHitch) {
+      built.push(makeItem(`マシンヒッチ（${s_standard}対応 / 機種別品番確認要）`, undefined, price_type));
     }
-    base.push({ name_ja: `グリッパー（${s_standard}対応品）` });
 
-    if (dc_system === 'DC2') {
-      base.push({ name_ja: 'DC2コントロールシステム／ジョイスティック' });
-      base.push({ name_ja: 'QSCシステム（EXTDC2-MAP30-QH5）', item_no: 'EXTDC2-MAP30-QH5' });
+    // 3. グリッパー
+    const grdInfo = GRD_ITEM_MAP[s_standard];
+    if (grdInfo) {
+      const grdPrice = await lookupPrice(grdInfo.item_no);
+      built.push(makeItem(grdInfo.name, grdPrice, price_type, grdInfo.item_no));
     } else {
-      base.push({ name_ja: 'DC3コントロールシステム' });
-      base.push({ name_ja: 'QSCシステム' });
+      built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
     }
 
-    base.push({ name_ja: 'ホースプロテクション', qty: 4 });
+    // 4. DCシステム品目
+    if (dc_system === 'DC2') {
+      for (const sys of DC2_SYSTEM_ITEMS) {
+        const p = await lookupPrice(sys.item_no);
+        built.push(makeItem(sys.name_ja, p, price_type, sys.item_no, sys.qty ?? 1));
+      }
+    } else {
+      // DC3: 品番は別途追加予定
+      built.push(makeItem('DC3コントロールシステム一式', undefined, price_type));
+      built.push(makeItem('ホースプロテクション', undefined, price_type, undefined, 4));
+    }
 
-    return base;
+    const sorted = built.map((item, i) => ({ ...item, sort_order: i + 1 }));
+    setItems(sorted);
+    setLoading(false);
   }
 
   function updateItem(index: number, field: keyof QuoteItem, value: number | string | boolean) {
@@ -104,6 +141,7 @@ export default function Step5ItemList() {
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-200 px-3 py-2 text-left">品名</th>
+                <th className="border border-gray-200 px-3 py-2 text-left w-24">品番</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">定価</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-16">数量</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">販売価</th>
@@ -113,7 +151,7 @@ export default function Step5ItemList() {
             </thead>
             <tbody>
               {items.map((item, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+                <tr key={i} className={`hover:bg-gray-50 ${item.list_price == null && !item.is_custom ? 'bg-yellow-50' : ''}`}>
                   <td className="border border-gray-200 px-2 py-1">
                     {item.is_custom ? (
                       <input type="text" value={item.name_ja}
@@ -123,8 +161,11 @@ export default function Step5ItemList() {
                       <span>{item.name_ja}</span>
                     )}
                   </td>
+                  <td className="border border-gray-200 px-2 py-1 text-xs text-gray-500">
+                    {item.item_no ?? '—'}
+                  </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
-                    {item.list_price != null ? item.list_price.toLocaleString() : '—'}
+                    {item.list_price != null ? item.list_price.toLocaleString() : <span className="text-yellow-600 text-xs">要確認</span>}
                   </td>
                   <td className="border border-gray-200 px-2 py-1">
                     <input type="number" min={1} value={item.qty}
@@ -132,7 +173,10 @@ export default function Step5ItemList() {
                       className="w-16 text-right border border-gray-200 rounded px-1 focus:outline-none focus:ring-1 focus:ring-blue-400" />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
-                    {item.unit_price != null ? item.unit_price.toLocaleString() : '—'}
+                    <input type="number" min={0} value={item.unit_price ?? ''}
+                      onChange={(e) => updateItem(i, 'unit_price', parseInt(e.target.value) || 0)}
+                      placeholder="—"
+                      className="w-24 text-right border border-gray-200 rounded px-1 focus:outline-none focus:ring-1 focus:ring-blue-400" />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     {item.amount != null ? item.amount.toLocaleString() : '—'}
