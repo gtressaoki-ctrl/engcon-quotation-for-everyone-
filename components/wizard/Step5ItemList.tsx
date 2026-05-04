@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { calculateSalesPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
-import type { QuoteItem } from '@/types/quote';
+import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
+import type { QuoteItem, PriceType } from '@/types/quote';
 
 const EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080111',
@@ -31,7 +32,7 @@ const DC2_SYSTEM_ITEMS: { name_ja: string; item_no: string; qty?: number }[] = [
 ];
 
 export default function Step5ItemList() {
-  const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, items, setItems, nextStep, prevStep } = useWizardStore();
+  const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model, items, setItems, nextStep, prevStep } = useWizardStore();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function Step5ItemList() {
   function makeItem(
     name_ja: string,
     list_price: number | undefined,
-    price_type_: string,
+    price_type_: PriceType,
     item_no?: string,
     qty = 1
   ): QuoteItem {
@@ -72,16 +73,19 @@ export default function Step5ItemList() {
     const built: QuoteItem[] = [];
 
     // 1. チルトローテータ本体
-    const ecItemNo = EC_ITEM_MAP[ec_model];
+    // For DM, prefer catalog's ec_item_no; fall back to generic EC_ITEM_MAP
+    const catalogEntry =
+      lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
+      fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
+    const ecItemNo = (mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model];
     const ecPrice = ecItemNo ? await lookupPrice(ecItemNo) : undefined;
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ecPrice, price_type, ecItemNo));
 
-    // 2. マシンヒッチ（機種別・品番は別途確認）
-    const hitachMakers = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Yanmar'];
-    const needsHitch = mount_type === 'SW' || hitachMakers.includes(machine_maker);
-    if (needsHitch) {
-      built.push(makeItem(`マシンヒッチ（${s_standard}対応 / 機種別品番確認要）`, undefined, price_type));
-    }
+    // 2. マシンヒッチ（カタログ品番自動設定 or 要確認）
+    const hitchItemNo = catalogEntry?.hitch_item_no ?? undefined;
+    const hitchPrice = hitchItemNo ? await lookupPrice(hitchItemNo) : undefined;
+    const hitchName = `マシンヒッチ（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
+    built.push(makeItem(hitchName, hitchPrice, price_type, hitchItemNo));
 
     // 3. グリッパー
     const grdInfo = GRD_ITEM_MAP[s_standard];
