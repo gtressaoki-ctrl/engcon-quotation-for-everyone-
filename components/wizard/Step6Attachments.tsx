@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
-import { calculateSalesPrice } from '@/lib/pricing';
-import { supabase } from '@/lib/supabase';
 import type { QuoteItem } from '@/types/quote';
 
 const MECHANICAL = [
@@ -16,7 +14,7 @@ const HYDRAULIC = [
 ];
 
 export default function Step6Attachments() {
-  const { items, setItems, price_type, nextStep, prevStep } = useWizardStore();
+  const { items, setItems, nextStep, prevStep } = useWizardStore();
   const [selected, setSelected] = useState<Record<string, number>>({});
 
   function toggle(name: string) {
@@ -28,46 +26,14 @@ export default function Step6Attachments() {
     });
   }
 
-  async function handleNext() {
-    const attachmentItems: QuoteItem[] = [];
+  function handleNext() {
     const startSort = items.length + 1;
-    let idx = 0;
-
-    for (const [name, qty] of Object.entries(selected)) {
-      const { data } = await supabase
-        .from('parts_catalog')
-        .select('item_no, name_ja')
-        .eq('name_ja', name)
-        .limit(1)
-        .single();
-
-      let list_price: number | undefined;
-      let item_no: string | undefined;
-
-      if (data?.item_no) {
-        item_no = data.item_no;
-        const { data: pm } = await supabase
-          .from('price_master')
-          .select('price_jpy')
-          .eq('item_no', item_no)
-          .single();
-        if (pm) list_price = pm.price_jpy;
-      }
-
-      const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type) : undefined;
-      attachmentItems.push({
-        sort_order: startSort + idx,
-        item_no,
-        name_ja: name,
-        list_price,
-        qty,
-        unit_price,
-        amount: unit_price != null ? unit_price * qty : undefined,
-        is_custom: false,
-      });
-      idx++;
-    }
-
+    const attachmentItems: QuoteItem[] = Object.entries(selected).map(([name, qty], idx) => ({
+      sort_order: startSort + idx,
+      name_ja: name,
+      qty,
+      is_custom: true,
+    }));
     setItems([...items, ...attachmentItems]);
     nextStep();
   }

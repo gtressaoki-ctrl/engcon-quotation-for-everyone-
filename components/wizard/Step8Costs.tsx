@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { ExtraCost, QuoteItem } from '@/types/quote';
 
-const SKIP_KEYWORDS = ['コントロール', 'QSC', 'EXTDC', 'ホースプロテクション'];
+// DC系・小物はパレット不要。物理機器のみ1品目=1パレット
+const SKIP_KEYWORDS = ['コントロール', 'QSC', 'EXTDC', 'ホースプロテクション', 'MIG', 'Qsafe', 'C2C'];
 
 function calcPalletCount(items: QuoteItem[]): number {
   return items.reduce((total, item) => {
     const skip = SKIP_KEYWORDS.some((kw) => item.name_ja.includes(kw));
-    return skip ? total : total + item.qty;
+    return skip ? total : total + 1;
   }, 0);
 }
 
