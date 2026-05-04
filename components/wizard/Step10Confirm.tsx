@@ -26,20 +26,21 @@ export default function Step10Confirm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...state, subtotal, tax, total }),
       });
-      if (!res.ok) throw new Error('PDF生成に失敗しました');
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'PDF生成に失敗しました');
       setQuoteNumber(data.quoteNumber);
 
-      const pdfRes = await fetch(`/api/generate-pdf?id=${data.quoteId}`);
-      if (pdfRes.ok) {
-        const blob = await pdfRes.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${data.quoteNumber}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      // base64 PDF を直接ダウンロード
+      const binary = atob(data.pdf);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.quoteNumber}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       alert(e instanceof Error ? e.message : 'エラーが発生しました');
     } finally {
