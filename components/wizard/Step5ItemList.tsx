@@ -22,14 +22,6 @@ const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
   S70: { item_no: '1074818', name: 'グリッパー GRD70' },
 };
 
-const DC2_SYSTEM_ITEMS: { name_ja: string; item_no: string; qty?: number }[] = [
-  { name_ja: 'DC2コントロールシステム', item_no: '8002535' },
-  { name_ja: 'MIG2', item_no: '841528' },
-  { name_ja: 'QSCシステム', item_no: '8002201' },
-  { name_ja: 'Qsafe', item_no: '8000271' },
-  { name_ja: 'C2C', item_no: '8001813' },
-  { name_ja: 'ホースプロテクション', item_no: '540190', qty: 4 },
-];
 
 export default function Step5ItemList() {
   const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model, items, setItems, nextStep, prevStep } = useWizardStore();
@@ -98,10 +90,15 @@ export default function Step5ItemList() {
 
     // 4. DCシステム品目
     if (dc_system === 'DC2') {
-      for (const sys of DC2_SYSTEM_ITEMS) {
-        const p = await lookupPrice(sys.item_no);
-        built.push(makeItem(sys.name_ja, p, price_type, sys.item_no, sys.qty ?? 1));
+      built.push(makeItem('DC2コントロールシステム', await lookupPrice('8002535'), price_type, '8002535'));
+      built.push(makeItem('MIG2', await lookupPrice('841528'), price_type, '841528'));
+      if (mount_type === 'SW') {
+        built.push(makeItem('QSCシステム', await lookupPrice('8002201'), price_type, '8002201'));
+      } else {
+        built.push(makeItem('Qsafe', await lookupPrice('8000271'), price_type, '8000271'));
       }
+      built.push(makeItem('C2C', await lookupPrice('8001813'), price_type, '8001813'));
+      built.push(makeItem('ホースプロテクション', await lookupPrice('540190'), price_type, '540190', 4));
     } else {
       // DC3（CATシート参照）
       const dc3ControlNo = '8001992';
