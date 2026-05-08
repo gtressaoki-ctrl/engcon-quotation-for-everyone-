@@ -16,6 +16,9 @@ export async function POST(req: NextRequest) {
     const chromium = (await import('@sparticuz/chromium')).default;
     const puppeteer = (await import('puppeteer-core')).default;
 
+    chromium.setHeadlessMode = true;
+    chromium.setGraphicsMode = false;
+
     const browser = await (puppeteer as any).launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
