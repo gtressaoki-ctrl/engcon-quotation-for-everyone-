@@ -6,8 +6,9 @@ import { supabase } from '@/lib/supabase';
 import { getPriceType } from '@/lib/pricing';
 
 const DEALERS_DEFAULT = [
-  '生振商会', 'IB', '寿', 'シーエン', '原商',
-  'ギアトライム', '喜多機械', 'サーデック', 'ヤマノ', '下元',
+  '生振商会株式会社', '株式会社IB', '株式会社寿', '株式会社シーエン', '原商株式会社',
+  '株式会社GEAR TRYM', '喜多機械産業株式會社', '株式会社サーデック', '株式会社ヤマノ', '有限会社下元自動車整備場',
+  '株式会社ゆいまーる建機', '合同会社リ―サステック', '株式会社MIGHT', '富士岡山運搬機株式会社',
 ];
 
 export default function Step2Client() {
