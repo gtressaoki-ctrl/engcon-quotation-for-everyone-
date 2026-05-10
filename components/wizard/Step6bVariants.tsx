@@ -18,6 +18,7 @@ export default function Step6bVariants() {
   const [variants, setVariants] = useState<Record<string, Variant[]>>({});
   const [selections, setSelections] = useState<Record<string, string>>({});  // category_id → item_no
   const [loading, setLoading] = useState(true);
+  const [inventory, setInventory] = useState<Record<string, number>>({});
 
   const selectedCategories = Object.keys(pending_attachments).filter((id) => pending_attachments[id] > 0);
   const stdNum = getStdNum(s_standard);
@@ -25,6 +26,10 @@ export default function Step6bVariants() {
   useEffect(() => {
     if (selectedCategories.length === 0) { setLoading(false); return; }
     fetchAllVariants();
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/inventory').then((r) => r.json()).then(setInventory).catch(() => {});
   }, []);
 
   async function fetchAllVariants() {
