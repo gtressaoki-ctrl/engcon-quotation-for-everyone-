@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(git add *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__list_teams",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__list_projects",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__deploy_to_vercel",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_project"
     ]
   }
 }
