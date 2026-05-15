@@ -7,6 +7,15 @@ import { supabase } from '@/lib/supabase';
 import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
 
+function InventoryBadge({ itemNo, inventory }: { itemNo?: string; inventory: Record<string, number> | null }) {
+  if (!itemNo || inventory === null) return <span className="text-gray-300 text-xs">—</span>;
+  const balance = inventory[itemNo];
+  const inStock = balance != null && balance > 0;
+  return inStock
+    ? <span className="text-green-600 text-xs font-medium whitespace-nowrap">● 在庫あり</span>
+    : <span className="text-red-400 text-xs font-medium whitespace-nowrap">● 在庫なし</span>;
+}
+
 const EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080111',
   EC206B: '1068693',
@@ -26,6 +35,14 @@ const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
 export default function Step5ItemList() {
   const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model, items, setItems, nextStep, prevStep } = useWizardStore();
   const [loading, setLoading] = useState(false);
+  const [inventory, setInventory] = useState<Record<string, number> | null>(null);
+
+  useEffect(() => {
+    fetch('/api/inventory')
+      .then((r) => r.json())
+      .then((data) => setInventory(data))
+      .catch(() => setInventory({}));
+  }, []);
 
   useEffect(() => {
     if (items.length === 0) buildDefaultItems();
@@ -155,6 +172,7 @@ export default function Step5ItemList() {
               <tr className="bg-gray-100">
                 <th className="border border-gray-200 px-3 py-2 text-left">品名</th>
                 <th className="border border-gray-200 px-3 py-2 text-left w-24">品番</th>
+                <th className="border border-gray-200 px-3 py-2 text-center w-24">在庫</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">定価</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-16">数量</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">販売価</th>
@@ -176,6 +194,9 @@ export default function Step5ItemList() {
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-xs text-gray-500">
                     {item.item_no ?? '—'}
+                  </td>
+                  <td className="border border-gray-200 px-2 py-1 text-center">
+                    <InventoryBadge itemNo={item.item_no} inventory={inventory} />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     {item.list_price != null ? item.list_price.toLocaleString() : <span className="text-yellow-600 text-xs">要確認</span>}
