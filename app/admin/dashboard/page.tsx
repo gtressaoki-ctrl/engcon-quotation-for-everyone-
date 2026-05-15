@@ -10,6 +10,8 @@ export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<QuoteRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState('');
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
 
   useEffect(() => {
@@ -36,6 +38,28 @@ export default function AdminDashboard() {
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/admin');
+  }
+
+  async function seedPriceMaster() {
+    const key = prompt('サービスロールキーを入力してください:');
+    if (!key) return;
+    setSeeding(true);
+    setSeedResult('');
+    try {
+      const res = await fetch('/api/admin/seed-prices', {
+        method: 'POST',
+        headers: { 'x-admin-key': key },
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setSeedResult(`✓ price_master投入完了: ${json.inserted}件`);
+      } else {
+        setSeedResult(`✗ エラー: ${json.error}`);
+      }
+    } catch {
+      setSeedResult('✗ ネットワークエラー');
+    }
+    setSeeding(false);
   }
 
   function exportCsv() {
@@ -67,8 +91,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
         <h1 className="text-lg font-bold text-gray-800">管理者ダッシュボード</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <a href="/admin/dealers" className="text-sm text-blue-600 hover:underline">ディーラー管理</a>
+          <button
+            onClick={seedPriceMaster}
+            disabled={seeding}
+            className="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded disabled:opacity-50"
+          >
+            {seeding ? '投入中...' : '価格マスタ投入'}
+          </button>
+          {seedResult && <span className="text-xs text-gray-600">{seedResult}</span>}
           <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">ログアウト</button>
         </div>
       </header>
