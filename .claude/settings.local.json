@@ -6,7 +6,12 @@
       "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__list_teams",
       "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__list_projects",
       "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__deploy_to_vercel",
-      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_project"
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_project",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__list_deployments",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__web_fetch_vercel_url",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_deployment",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_access_to_vercel_url",
+      "mcp__cd0cf350-9813-4c7d-8f10-24aac075f783__get_deployment_build_logs"
     ]
   }
 }
