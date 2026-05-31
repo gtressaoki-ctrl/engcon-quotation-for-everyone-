@@ -1,11 +1,24 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { getPriceType } from '@/lib/pricing';
+import { supabase } from '@/lib/supabase';
 
 export default function Step1Creator() {
   const { creator_type, creator_company, creator_name, client_type, update, nextStep } =
     useWizardStore();
+  const [adminSession, setAdminSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (creator_type === 'gtres') {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setAdminSession(!!session);
+      });
+    } else {
+      setAdminSession(null);
+    }
+  }, [creator_type]);
 
   function handleNext() {
     if (!creator_name.trim()) {
@@ -14,6 +27,10 @@ export default function Step1Creator() {
     }
     if (creator_type === 'dealer' && !creator_company.trim()) {
       alert('会社名を入力してください');
+      return;
+    }
+    if (creator_type === 'gtres' && !adminSession) {
+      alert('G.TRES社員は管理者ログイン後に見積作成してください');
       return;
     }
     if (creator_type === 'dealer') {
@@ -36,7 +53,7 @@ export default function Step1Creator() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">種別</label>
         <div className="flex gap-6">
-          {(['gtres', 'dealer'] as const).map((t) => (
+          {(['dealer', 'gtres'] as const).map((t) => (
             <label key={t} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -55,6 +72,19 @@ export default function Step1Creator() {
           ))}
         </div>
       </div>
+
+      {creator_type === 'gtres' && (
+        <div className={`p-3 rounded-lg border text-sm ${adminSession ? 'bg-green-50 border-green-200 text-green-700' : 'bg-yellow-50 border-yellow-200 text-yellow-800'}`}>
+          {adminSession === null && '管理者セッションを確認中...'}
+          {adminSession === true && '✓ 管理者としてログイン済み'}
+          {adminSession === false && (
+            <span>
+              G.TRES社員の見積作成には管理者ログインが必要です。{' '}
+              <a href="/admin" className="underline font-medium">管理者ログインページへ</a>
+            </span>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">会社名</label>

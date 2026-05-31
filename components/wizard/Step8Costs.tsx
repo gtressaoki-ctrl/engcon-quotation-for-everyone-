@@ -4,14 +4,13 @@ import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { ExtraCost, QuoteItem } from '@/types/quote';
 
-// DC系・小物はパレット不要。物理機器のみ1品目=1パレット
-const SKIP_KEYWORDS = ['コントロール', 'QSC', 'EXTDC', 'ホースプロテクション', 'MIG', 'Qsafe', 'C2C'];
+// コントロール系・消耗品はパレット不要。物理機器（チルトローテータ・クイックカプラ・グリッパー・アタッチメント）を各1パレット計上
+const CONTROL_KEYWORDS = ['コントロールシステム', 'QSCシステム', 'Qsafe', 'ホースプロテクション', 'MIG2', 'C2C', 'EXTDC'];
 
 function calcPalletCount(items: QuoteItem[]): number {
-  return items.reduce((total, item) => {
-    const skip = SKIP_KEYWORDS.some((kw) => item.name_ja.includes(kw));
-    return skip ? total : total + 1;
-  }, 0);
+  return items.filter((item) =>
+    !CONTROL_KEYWORDS.some((kw) => item.name_ja.includes(kw))
+  ).length;
 }
 
 export default function Step8Costs() {
@@ -50,13 +49,13 @@ export default function Step8Costs() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 8：費用・物流</h2>
+      <h2 className="text-xl font-semibold text-gray-700">STEP 9：費用・物流</h2>
 
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-700">パレット数（自動計算）</p>
-            <p className="text-xs text-gray-500 mt-0.5">EC・クイックカプラ・グリッパー・アタッチメントを各1パレットでカウント</p>
+            <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・クイックカプラ・グリッパー・アタッチメントを各1パレットでカウント</p>
           </div>
           <span className="text-2xl font-bold text-gray-800">{pallet_count} パレット</span>
         </div>

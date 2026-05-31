@@ -7,6 +7,12 @@ import { supabase } from '@/lib/supabase';
 import { ATTACHMENT_CATEGORIES, getStdNum } from '@/lib/attachmentCategories';
 import type { QuoteItem } from '@/types/quote';
 
+function parseBucketSize(description: string): string | null {
+  const match = description.match(/-(\d+)-(\d+)/);
+  if (!match) return null;
+  return `${match[1]}ℓ ${match[2]}㎜`;
+}
+
 interface Variant {
   item_no: string;
   description: string;
@@ -174,6 +180,11 @@ export default function Step6bVariants() {
                             <span className="font-mono text-xs text-gray-600">{v.item_no}</span>
                             {'　'}
                             {v.description}
+                            {parseBucketSize(v.description) && (
+                              <span className="ml-2 text-xs text-blue-600 font-medium">
+                                {parseBucketSize(v.description)}
+                              </span>
+                            )}
                           </span>
                           <span className="text-gray-500 shrink-0">¥{v.price_jpy.toLocaleString()}</span>
                           {stock !== null && (
