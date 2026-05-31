@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState('');
+  const [setupResult, setSetupResult] = useState('');
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
 
   useEffect(() => {
@@ -38,6 +39,27 @@ export default function AdminDashboard() {
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/admin');
+  }
+
+  async function runSetup() {
+    const key = prompt('サービスロールキーを入力してください:');
+    if (!key) return;
+    setSetupResult('実行中...');
+    try {
+      const res = await fetch('/api/admin/setup', {
+        method: 'POST',
+        headers: { 'x-admin-key': key },
+      });
+      const json = await res.json();
+      if (json.ok) {
+        const r = json.results;
+        setSetupResult(`✓ バケット:${r.bucket} / price_master:${r.price_master_count}件`);
+      } else {
+        setSetupResult(`✗ ${json.error}`);
+      }
+    } catch {
+      setSetupResult('✗ ネットワークエラー');
+    }
   }
 
   async function seedPriceMaster() {
@@ -93,6 +115,13 @@ export default function AdminDashboard() {
         <h1 className="text-lg font-bold text-gray-800">管理者ダッシュボード</h1>
         <div className="flex gap-4 items-center">
           <a href="/admin/dealers" className="text-sm text-blue-600 hover:underline">ディーラー管理</a>
+          <button
+            onClick={runSetup}
+            className="text-sm bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded"
+          >
+            初期セットアップ
+          </button>
+          {setupResult && <span className="text-xs text-gray-600">{setupResult}</span>}
           <button
             onClick={seedPriceMaster}
             disabled={seeding}
