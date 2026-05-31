@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup:supabase": "node --env-file=.env.local scripts/setup-supabase.mjs"
   },
   "dependencies": {
     "@sparticuz/chromium": "133.0.0",
