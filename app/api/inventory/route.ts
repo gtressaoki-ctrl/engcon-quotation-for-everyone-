@@ -1,36 +1,48 @@
 import { NextResponse } from 'next/server';
-import { readFileSync, existsSync } from 'fs';
 import path from 'path';
+import fs from 'fs';
 
-export const dynamic = 'force-dynamic';
+// Returns { [partNumber]: totalBalance } for all parts with balance > 0
+export async function GET() {
+  const csvPath = path.join(process.cwd(), 'Part list as of 20260501_v2 .csv');
+  const text = fs.readFileSync(csvPath, 'utf-8');
+  const lines = text.split('\n');
 
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    if (line[i] === '"') { inQuotes = !inQuotes; }
-    else if (line[i] === ',' && !inQuotes) { result.push(current); current = ''; }
-    else { current += line[i]; }
+  const inventory: Record<string, number> = {};
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Parse CSV respecting quoted fields
+    const cols = parseCsvLine(line);
+    if (cols.length < 5) continue;
+
+    const partNo = cols[0].trim();
+    const balance = parseFloat(cols[4]);
+    if (partNo && !isNaN(balance)) {
+      inventory[partNo] = balance;
+    }
   }
-  result.push(current);
-  return result;
+
+  return NextResponse.json(inventory);
 }
 
-export async function GET() {
-  const csvPath = path.join(process.cwd(), 'public', 'inventory.csv');
-  if (!existsSync(csvPath)) return NextResponse.json({});
-  const text = readFileSync(csvPath, 'utf-8').replace(/^﻿/, '');
-  const lines = text.split('\n').filter((l) => l.trim());
-  const header = parseCSVLine(lines[0]);
-  const partIdx = header.findIndex((h) => h.toLowerCase().includes('part number'));
-  const balanceIdx = header.findIndex((h) => h.toLowerCase().includes('total balance'));
-  const inventory: Record<string, number> = {};
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    const partNo = cols[partIdx]?.trim();
-    const balance = parseFloat(cols[balanceIdx] || '0') || 0;
-    if (partNo) inventory[partNo] = (inventory[partNo] ?? 0) + balance;
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let cur = '';
+  let inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuote = !inQuote;
+    } else if (ch === ',' && !inQuote) {
+      result.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
   }
-  return NextResponse.json(inventory);
+  result.push(cur);
+  return result;
 }
