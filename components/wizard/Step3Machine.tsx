@@ -1,9 +1,9 @@
 'use client';
 
 import { useWizardStore } from '@/lib/wizardStore';
-import { getCatalogModels, MACHINE_CATALOG } from '@/lib/machineCatalog';
+import { getCatalogModels, MACHINE_CATALOG, getMachineListEntry } from '@/lib/machineCatalog';
 
-const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Yanmar', 'KATO', 'VOLVO', 'その他'];
+const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'YANMAR', 'KATO', 'VOLVO', 'その他'];
 
 // These makers always use DC2
 const DC2_AUTO_MAKERS = ['KOMATSU', 'KUBOTA', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'YANMAR', 'KATO'];
@@ -43,12 +43,17 @@ export default function Step3Machine() {
       return;
     }
 
-    // Find first catalog entry for this model to auto-set s_standard and dc_system
-    const entry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
-    if (entry) {
-      update({ machine_model: model, s_standard: entry.s_standard, dc_system: entry.dc });
+    // Try MACHINE_CATALOG first (has exact item numbers), then MACHINE_LIST for auto-detection
+    const catalogEntry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
+    if (catalogEntry) {
+      update({ machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc });
     } else {
-      update({ machine_model: model });
+      const listEntry = getMachineListEntry(machine_maker, model);
+      if (listEntry) {
+        update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc });
+      } else {
+        update({ machine_model: model });
+      }
     }
   }
 
