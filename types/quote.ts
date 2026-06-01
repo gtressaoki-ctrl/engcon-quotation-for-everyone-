@@ -2,7 +2,7 @@ export type CreatorType = 'gtres' | 'dealer';
 export type ClientType = 'dealer' | 'reseller' | 'enduser';
 export type MachineCondition = 'new' | 'used';
 export type MountType = 'SW' | 'DM';
-export type SStandard = 'S40' | 'S45' | 'S60' | 'S70' | 'S80';
+export type SStandard = 'S30' | 'S40' | 'S45' | 'S60' | 'S70' | 'S80';
 export type DCSystem = 'DC2' | 'DC3';
 export type PriceType = 'dealer' | 'reseller' | 'enduser';
 

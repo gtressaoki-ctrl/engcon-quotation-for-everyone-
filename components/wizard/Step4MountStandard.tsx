@@ -5,11 +5,12 @@ import { useWizardStore } from '@/lib/wizardStore';
 import type { SStandard } from '@/types/quote';
 
 const EC_MODELS: Record<SStandard, string[]> = {
+  S30: ['EC204B'],
   S40: ['EC204B', 'EC206B'],
   S45: ['EC206B', 'EC209B'],
-  S60: ['EC214S'],
+  S60: ['EC214S', 'EC219'],
   S70: ['EC226S'],
-  S80: ['EC226S'],
+  S80: ['EC226S', 'EC233'],
 };
 
 export default function Step4MountStandard() {
@@ -54,7 +55,7 @@ export default function Step4MountStandard() {
         <label className="block text-sm font-medium text-gray-700 mb-1">S規格</label>
         <select value={s_standard} onChange={(e) => handleSStandardChange(e.target.value as SStandard)}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {(['S40', 'S45', 'S60', 'S70', 'S80'] as SStandard[]).map((s) => (
+          {(['S30', 'S40', 'S45', 'S60', 'S70', 'S80'] as SStandard[]).map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
