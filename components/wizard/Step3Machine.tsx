@@ -3,7 +3,13 @@
 import { useWizardStore } from '@/lib/wizardStore';
 import { getCatalogModels, MACHINE_CATALOG } from '@/lib/machineCatalog';
 
-const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Yanmar', 'VOLVO', 'その他'];
+const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Yanmar', 'KATO', 'VOLVO', 'その他'];
+
+// These makers always use DC2
+const DC2_AUTO_MAKERS = ['KOMATSU', 'KUBOTA', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'YANMAR', 'KATO'];
+
+// KOMATSU models that are DC3 (exceptions to DC2 rule)
+const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12'];
 
 export default function Step3Machine() {
   const {
@@ -16,7 +22,12 @@ export default function Step3Machine() {
   const isInCatalog = catalogModels.includes(machine_model);
 
   function handleMakerChange(maker: string) {
-    update({ machine_maker: maker, machine_model: '' });
+    const updates: Parameters<typeof update>[0] = { machine_maker: maker, machine_model: '' };
+    if (DC2_AUTO_MAKERS.includes(maker.toUpperCase())) {
+      updates.dc_system = 'DC2';
+      updates.mount_type = 'SW';
+    }
+    update(updates);
   }
 
   function handleModelSelect(model: string) {
@@ -24,6 +35,14 @@ export default function Step3Machine() {
       update({ machine_model: '' });
       return;
     }
+
+    // KOMATSU DC3 exception models
+    if (machine_maker.toUpperCase() === 'KOMATSU' &&
+      KOMATSU_DC3_MODELS.some((m) => m.toLowerCase() === model.toLowerCase())) {
+      update({ machine_model: model, dc_system: 'DC3' });
+      return;
+    }
+
     // Find first catalog entry for this model to auto-set s_standard and dc_system
     const entry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
     if (entry) {
@@ -35,7 +54,6 @@ export default function Step3Machine() {
 
   function handleNext() {
     if (!machine_model.trim()) { alert('機種名を入力してください'); return; }
-    if (!cabin_confirmed) { alert('キャビン仕様を確認してください'); return; }
     if (!piping_confirmed) { alert('共用配管を確認してください'); return; }
     nextStep();
   }
@@ -85,7 +103,7 @@ export default function Step3Machine() {
                 type="text"
                 value={machine_model}
                 onChange={(e) => update({ machine_model: e.target.value })}
-                placeholder="機種名を直接入力（S規格・ヒッチは手動設定）"
+                placeholder="機種名を直接入力"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             )}
@@ -116,7 +134,7 @@ export default function Step3Machine() {
           <input type="checkbox" checked={cabin_confirmed}
             onChange={(e) => update({ cabin_confirmed: e.target.checked })}
             className="w-5 h-5 mt-0.5 text-blue-600" />
-          <span className="text-sm text-gray-700">キャビン仕様を確認しました <span className="text-red-500">*</span></span>
+          <span className="text-sm text-gray-700">キャノピー仕様への取付を希望する場合はチェックしてください</span>
         </label>
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={piping_confirmed}

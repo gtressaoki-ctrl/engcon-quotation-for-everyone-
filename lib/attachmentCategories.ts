@@ -75,10 +75,6 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
     keepFn: (d) => /^(PP|PC)\d/.test(d),
   },
   {
-    id: 'removable_gripper', label_ja: 'グリッパー（取外し可能）', group: 'hydraulic',
-    getPatterns: (n) => [`GRD${n}%`],
-  },
-  {
     id: 'sweeper_roller', label_ja: 'スイーパーローラー', group: 'hydraulic',
     getPatterns: (n) => [`Sweeper-SWD${n}%`],
   },

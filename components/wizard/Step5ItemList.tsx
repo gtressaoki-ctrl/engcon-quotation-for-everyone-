@@ -114,7 +114,6 @@ export default function Step5ItemList() {
         ...(mount_type === 'SW'
           ? [['8002201', 'QSCシステム', 1]]
           : [['8000271', 'Qsafe', 1]]),
-        ['8001813', 'C2C', 1],
         ['540190',  'ホースプロテクション', 4],
       ] as [string, string, number][]) {
         const r = await lk(no);

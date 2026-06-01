@@ -12,8 +12,8 @@ interface WizardStore extends WizardState {
 }
 
 const initialState: WizardState = {
-  creator_type: 'gtres',
-  creator_company: '株式会社 G.TRES',
+  creator_type: 'dealer',
+  creator_company: '',
   creator_name: '',
 
   client_type: 'dealer',
