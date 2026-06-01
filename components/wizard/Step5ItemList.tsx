@@ -133,6 +133,18 @@ export default function Step5ItemList() {
       built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
     }
 
+    // 5. 住友建機専用追加部品
+    if (machine_maker === 'SUMITOMO') {
+      for (const [no, fb, qty] of [
+        ['1047524', '住友専用部品', 2],
+        ['1049627', '住友専用部品', 1],
+        ['710702',  '住友専用部品', 4],
+      ] as [string, string, number][]) {
+        const r = await lk(no);
+        built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
+      }
+    }
+
     const sorted = built.map((item, i) => ({ ...item, sort_order: i + 1 }));
     setItems(sorted);
     setLoading(false);
