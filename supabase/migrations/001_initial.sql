@@ -103,12 +103,20 @@ ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quote_items ENABLE ROW LEVEL SECURITY;
 
 -- 一般ユーザー向けポリシー（価格マスタ読み取り）
+DROP POLICY IF EXISTS "price_master_read" ON price_master;
 CREATE POLICY "price_master_read" ON price_master FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "parts_catalog_read" ON parts_catalog;
 CREATE POLICY "parts_catalog_read" ON parts_catalog FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "dealers_read" ON dealers;
 CREATE POLICY "dealers_read" ON dealers FOR SELECT USING (is_active = true);
 
 -- 見積もり書き込みポリシー（認証不要）
+DROP POLICY IF EXISTS "quotes_insert" ON quotes;
 CREATE POLICY "quotes_insert" ON quotes FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "quote_items_insert" ON quote_items;
 CREATE POLICY "quote_items_insert" ON quote_items FOR INSERT WITH CHECK (true);
 
 -- 管理者向けポリシー（サービスロールキーで全操作可能）
