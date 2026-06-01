@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateInvoicePdf } from '@/lib/pdfGenerator';
+import { generateStep10Html } from '@/lib/step10HtmlGenerator';
 import { generateQuoteNumber } from '@/lib/quoteNumber';
 import { uploadPdf } from '@/lib/pdfStorage';
 import { createServiceClient } from '@/lib/supabase';
@@ -9,7 +9,28 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const quoteNumber = await generateQuoteNumber();
 
-    const pdfBuffer = await generateInvoicePdf(body, quoteNumber);
+    const createdAt = new Date().toLocaleDateString('ja-JP', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
+
+    const html = generateStep10Html({ state: body, quoteNumber, createdAt });
+
+    const chromium = (await import('@sparticuz/chromium')).default;
+    const puppeteer = (await import('puppeteer-core')).default;
+
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfUint8 = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+
+    const pdfBuffer = Buffer.from(pdfUint8);
 
     const supabase = createServiceClient();
 
