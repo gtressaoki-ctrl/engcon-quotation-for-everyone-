@@ -4,7 +4,7 @@ import fs from 'fs';
 
 // Returns { [partNumber]: totalBalance } for all parts with balance > 0
 export async function GET() {
-  const csvPath = path.join(process.cwd(), 'Part list as of 20260501_v2 .csv');
+  const csvPath = path.join(process.cwd(), 'public', 'inventory.csv');
   const text = fs.readFileSync(csvPath, 'utf-8');
   const lines = text.split('\n');
 
