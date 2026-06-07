@@ -1,4 +1,5 @@
 import type { WizardState } from '@/types/quote';
+import { calculateRsmCustomerPrice } from '@/lib/pricing';
 
 interface Props {
   state: WizardState & { subtotal: number; tax: number; total: number };
@@ -10,6 +11,8 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
   const freight = state.pallet_count * 35000;
   const travelTotal = state.travel_unit_cost * state.travel_count;
   const guidanceTotal = state.guidance_unit_cost * state.guidance_count;
+  const isRsm = state.price_type === 'rsm';
+  const sectionColspan = isRsm ? 7 : 5;
 
   // 行番号（5の倍数のみ表示）
   let lineNo = 0;
@@ -18,7 +21,13 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
     return lineNo % 5 === 0 ? String(lineNo) : '';
   }
 
-  function tr(name: string, qty: number | null, unitPrice: number | null, amount: number | null) {
+  function tr(name: string, qty: number | null, unitPrice: number | null, amount: number | null, listPrice?: number | null) {
+    const resaleUnit = isRsm && listPrice != null ? calculateRsmCustomerPrice(listPrice) : null;
+    const resaleAmount = resaleUnit != null && qty != null ? resaleUnit * qty : null;
+    const rsmCols = isRsm
+      ? `<td class="col-r">${resaleUnit != null ? resaleUnit.toLocaleString() : ''}</td>
+      <td class="col-r">${resaleAmount != null ? resaleAmount.toLocaleString() : ''}</td>`
+      : '';
     return `<tr>
       <td class="ln">${nextLn()}</td>
       <td class="col-name">${name}</td>
@@ -26,18 +35,19 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
       <td class="col-r">${unitPrice != null ? unitPrice.toLocaleString() : ''}</td>
       <td class="col-r">${amount != null ? amount.toLocaleString() : ''}</td>
       <td class="col-r"></td>
+      ${rsmCols}
     </tr>`;
   }
 
   function sectionTr(label: string) {
-    return `<tr class="sec"><td class="ln">${nextLn()}</td><td colspan="5">${label}</td></tr>`;
+    return `<tr class="sec"><td class="ln">${nextLn()}</td><td colspan="${sectionColspan}">${label}</td></tr>`;
   }
 
   function blankTr() {
-    return `<tr class="blank"><td class="ln">${nextLn()}</td><td colspan="5"></td></tr>`;
+    return `<tr class="blank"><td class="ln">${nextLn()}</td><td colspan="${sectionColspan}"></td></tr>`;
   }
 
-  const mainRows = state.items.map((item) => tr(item.name_ja, item.qty, item.unit_price ?? null, item.amount ?? null)).join('');
+  const mainRows = state.items.map((item) => tr(item.name_ja, item.qty, item.unit_price ?? null, item.amount ?? null, item.list_price ?? null)).join('');
 
   const costRows: string[] = [];
   if (freight > 0) costRows.push(tr('送料（国内輸送）', state.pallet_count, 35000, freight));
@@ -228,6 +238,8 @@ tbody tr:last-child td { border-bottom:1px solid #999; }
       <th style="width:13%">部品単価</th>
       <th style="width:13%">部品金額</th>
       <th style="width:11%">技　術　料</th>
+      ${isRsm ? `<th style="width:13%">御客様販売単価</th>
+      <th style="width:13%">御客様販売金額</th>` : ''}
     </tr>
   </thead>
   <tbody>

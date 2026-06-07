@@ -36,6 +36,11 @@ export function calculateSalesPrice(listPrice: number, priceType: PriceType): nu
   return roundPrice(raw);
 }
 
+export function calculateRsmCustomerPrice(listPrice: number): number {
+  // ④RSMの卸(87.5%)：RSMが御客様に販売する際の参考価格
+  return roundPrice(listPrice * 0.875);
+}
+
 export function calcFreight(palletCount: number): number {
   return palletCount * 35000;
 }
