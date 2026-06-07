@@ -6,7 +6,7 @@ import { getPriceType } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
 
 export default function Step1Creator() {
-  const { creator_type, creator_company, creator_name, client_type, update, nextStep } =
+  const { creator_type, creator_company, creator_name, client_type, client_name, update, nextStep } =
     useWizardStore();
   const [adminSession, setAdminSession] = useState<boolean | null>(null);
 
@@ -37,10 +37,10 @@ export default function Step1Creator() {
       update({
         client_type: 'dealer',
         client_name: creator_company,
-        price_type: 'dealer',
+        price_type: getPriceType('dealer', 'dealer', creator_company),
       });
     } else {
-      const price_type = getPriceType(creator_type, client_type);
+      const price_type = getPriceType(creator_type, client_type, client_name);
       update({ price_type });
     }
     nextStep();

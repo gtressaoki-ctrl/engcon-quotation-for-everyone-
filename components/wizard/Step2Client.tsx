@@ -31,7 +31,7 @@ export default function Step2Client() {
       alert('見積先を入力してください');
       return;
     }
-    const price_type = getPriceType(creator_type, client_type);
+    const price_type = getPriceType(creator_type, client_type, client_name);
     update({ price_type });
     nextStep();
   }

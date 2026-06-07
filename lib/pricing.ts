@@ -8,7 +8,8 @@ export function roundPrice(price: number): number {
   }
 }
 
-export function getPriceType(creatorType: CreatorType, clientType: ClientType): PriceType {
+export function getPriceType(creatorType: CreatorType, clientType: ClientType, clientName?: string): PriceType {
+  if (clientType === 'dealer' && clientName?.trim().toUpperCase() === 'RSM') return 'rsm';
   if (creatorType === 'dealer') return 'dealer';
   if (clientType === 'dealer') return 'dealer';
   if (clientType === 'reseller') return 'reseller';
@@ -26,6 +27,10 @@ export function calculateSalesPrice(listPrice: number, priceType: PriceType): nu
       break;
     case 'enduser':
       raw = listPrice * 0.75 * 1.2;
+      break;
+    case 'rsm':
+      // ①定価 ②弊社の仕入(75%) ③弊社からの卸(81.25%) ④RSMの卸(87.5%)：RSM宛て見積は③の単価を使用
+      raw = listPrice * 0.8125;
       break;
   }
   return roundPrice(raw);
