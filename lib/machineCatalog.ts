@@ -104,7 +104,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'CAT', model: '320', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'CAT', model: '320GC', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'CAT', model: '323', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
-  { maker: 'CAT', model: '326', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
+  { maker: 'CAT', model: '325', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'CAT', model: '330', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC3' },
   { maker: 'CAT', model: '330GC', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC2' },
   { maker: 'CAT', model: '336', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC3' },
