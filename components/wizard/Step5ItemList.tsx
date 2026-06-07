@@ -31,9 +31,44 @@ const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
   S70: { item_no: '1074818', name: 'グリッパー GRD70' },
 };
 
+// CAT専用：DC2/MIG2セット品番（308以下＝CAT NG 301-310 用 / 313以上GCシリーズ用）
+const CAT_DC2_SET_NG_301_310 = '8001080';
+const CAT_DC2_SET_GC_313_PLUS = '8001221';
+const CAT_DC2_QSC = '8002201';      // サンドイッチ用 QSC
+const CAT_QSAFE = '8000271';        // ダイレクトマウント用 Qsafe
+const CAT_DC3_SET = '8001992';      // -07シリーズ DC3
+const CAT_DC3_QSC = '8002132';      // -07シリーズ QSC
+
+const CAT_07_NOTE =
+  '【備考】チルトローテータ利用には下記が必須となります。\n' +
+  '①493-9769　CAT ADV　ジョイスティック　②624-3083　CAT SEA (3rd party tiltrotator)\n' +
+  'ICT をご利用になる場合は別途　Grade Indication for 3rd partyが必要になると思われます。\n' +
+  '（御社で必ず３Dについては（SEA含めて）機材メーカーへお問合せをお願いいたします。）';
+
+const CAT_DEALER_NOTE =
+  'CATと取付の役割分担についての打合せをお願いいたします。\n' +
+  '機能キャリブレーションならびにICTとの接続はキャタピラーに依頼するのがいいと思われます。';
+
+// 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系 / "323-07" → -07系）
+function parseCatModelInfo(model: string): { size: number | null; isGC: boolean; is07: boolean } {
+  const sizeMatch = model.match(/(\d{3})/);
+  return {
+    size: sizeMatch ? parseInt(sizeMatch[1], 10) : null,
+    isGC: /GC/i.test(model),
+    is07: /-0?7(\D|$)/.test(model.trim()),
+  };
+}
+
+function appendNote(current: string, addition: string): string {
+  if (current.includes(addition)) return current;
+  return current.trim() ? `${current.trim()}\n\n${addition}` : addition;
+}
 
 export default function Step5ItemList() {
-  const { mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model, items, setItems, nextStep, prevStep } = useWizardStore();
+  const {
+    mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model,
+    client_type, note, items, setItems, update, nextStep, prevStep,
+  } = useWizardStore();
   const [loading, setLoading] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number> | null>(null);
 
@@ -107,7 +142,44 @@ export default function Step5ItemList() {
 
     // 4. DCシステム品目
     const lk = async (no: string) => lookup(no);
-    if (dc_system === 'DC2') {
+    const noteAdditions: string[] = [];
+
+    if (machine_maker === 'CAT') {
+      const { size, isGC, is07 } = parseCatModelInfo(machine_model);
+
+      if (mount_type === 'SW') {
+        built.push(makeItem('クイックカプラ（S）（機種別品番要確認）', undefined, price_type));
+      }
+
+      if (is07) {
+        // -07シリーズ：DC3構成（MIG2なし／CAT ADVジョイスティック使用）
+        const dc3 = await lk(CAT_DC3_SET);
+        built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
+        const qsc = await lk(CAT_DC3_QSC);
+        built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
+        const hose = await lk('540190');
+        built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
+        noteAdditions.push(CAT_07_NOTE);
+      } else {
+        // 308以下、または313以上GCシリーズ：DC2/MIG2構成
+        const setNo = (size != null && size >= 313 && isGC) ? CAT_DC2_SET_GC_313_PLUS : CAT_DC2_SET_NG_301_310;
+        const set = await lk(setNo);
+        built.push(makeItem('DC2/MIG2セット', set.price, price_type, setNo, 1, set.description));
+        if (mount_type === 'SW') {
+          const qsc = await lk(CAT_DC2_QSC);
+          built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC2_QSC, 1, qsc.description));
+        } else {
+          const qs = await lk(CAT_QSAFE);
+          built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
+        }
+        const hose = await lk('540190');
+        built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
+      }
+
+      if (client_type === 'dealer') {
+        noteAdditions.push(CAT_DEALER_NOTE);
+      }
+    } else if (dc_system === 'DC2') {
       for (const [no, fb, qty] of [
         ['8002535', 'DC2コントロールシステム', 1],
         ['841528',  'MIG2', 1],
@@ -131,6 +203,12 @@ export default function Step5ItemList() {
       }
       const hose = await lk('540190');
       built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
+    }
+
+    if (noteAdditions.length > 0) {
+      let updatedNote = note;
+      for (const addition of noteAdditions) updatedNote = appendNote(updatedNote, addition);
+      if (updatedNote !== note) update({ note: updatedNote });
     }
 
     // 5. 住友建機専用追加部品
