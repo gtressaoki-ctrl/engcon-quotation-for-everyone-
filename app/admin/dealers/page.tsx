@@ -26,9 +26,23 @@ export default function DealersPage() {
     if (!session) router.push('/admin');
   }
 
+  async function readError(res: Response): Promise<string> {
+    try {
+      const { error } = await res.json();
+      return error || `HTTP ${res.status}`;
+    } catch {
+      return `HTTP ${res.status}`;
+    }
+  }
+
   async function fetchDealers() {
     setLoading(true);
     const res = await fetch('/api/admin/dealers');
+    if (!res.ok) {
+      alert(`一覧の取得に失敗しました：${await readError(res)}`);
+      setLoading(false);
+      return;
+    }
     const { data } = await res.json();
     setDealers(data || []);
     setLoading(false);
@@ -42,8 +56,7 @@ export default function DealersPage() {
       body: JSON.stringify({ name: newName.trim() }),
     });
     if (!res.ok) {
-      const { error } = await res.json();
-      alert(`追加に失敗しました：${error}`);
+      alert(`追加に失敗しました：${await readError(res)}`);
       return;
     }
     setNewName('');
@@ -57,8 +70,7 @@ export default function DealersPage() {
       body: JSON.stringify({ id, is_active: !current }),
     });
     if (!res.ok) {
-      const { error } = await res.json();
-      alert(`更新に失敗しました：${error}`);
+      alert(`更新に失敗しました：${await readError(res)}`);
       return;
     }
     fetchDealers();
@@ -68,8 +80,7 @@ export default function DealersPage() {
     if (!confirm('このディーラーを削除しますか？')) return;
     const res = await fetch(`/api/admin/dealers?id=${id}`, { method: 'DELETE' });
     if (!res.ok) {
-      const { error } = await res.json();
-      alert(`削除に失敗しました：${error}`);
+      alert(`削除に失敗しました：${await readError(res)}`);
       return;
     }
     fetchDealers();
