@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import type { QuoteRecord } from '@/types/quote';
+import type { QuoteRecord, QuoteItem } from '@/types/quote';
+
+const CLIENT_TYPE_LABELS: Record<string, string> = {
+  dealer: 'ディーラー', reseller: '未登録販売店', enduser: 'エンドユーザー',
+};
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -14,6 +18,8 @@ export default function AdminDashboard() {
   const [seedResult, setSeedResult] = useState('');
   const [setupResult, setSetupResult] = useState('');
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
+  const [detail, setDetail] = useState<{ quote: QuoteRecord; items: QuoteItem[] } | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -105,9 +111,18 @@ export default function AdminDashboard() {
     URL.revokeObjectURL(url);
   }
 
-  const CLIENT_TYPE_LABELS: Record<string, string> = {
-    dealer: 'ディーラー', reseller: '未登録販売店', enduser: 'エンドユーザー',
-  };
+  async function openDetail(id?: number) {
+    if (!id) return;
+    setDetailLoading(true);
+    setDetail(null);
+    try {
+      const res = await fetch(`/api/quotes/${id}`);
+      const json = await res.json();
+      if (res.ok) setDetail(json);
+    } finally {
+      setDetailLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -194,7 +209,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {quotes.map((q) => (
-                  <tr key={q.id} className="border-t border-gray-50 hover:bg-gray-50">
+                  <tr key={q.id} onClick={() => openDetail(q.id)} className="border-t border-gray-50 hover:bg-gray-50 cursor-pointer">
                     <td className="px-4 py-3 font-mono">{q.quote_number}</td>
                     <td className="px-4 py-3">{q.created_at ? new Date(q.created_at).toLocaleDateString('ja-JP') : ''}</td>
                     <td className="px-4 py-3">{q.creator_company}　{q.creator_name}</td>
@@ -211,6 +226,122 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {(detailLoading || detail) && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setDetail(null)}>
+          <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {detailLoading ? (
+              <div className="p-8 text-center text-gray-400">読み込み中...</div>
+            ) : detail && (
+              <div className="p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-bold text-gray-800">見積番号 {detail.quote.quote_number}</h2>
+                  <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+                </div>
+
+                <DetailSection title="作成者情報">
+                  <DetailRow label="種別" value={detail.quote.creator_type === 'gtres' ? 'G.TRES社員' : 'ディーラー'} />
+                  <DetailRow label="会社名" value={detail.quote.creator_company} />
+                  <DetailRow label="担当者名" value={detail.quote.creator_name} />
+                  <DetailRow label="作成日" value={detail.quote.created_at ? new Date(detail.quote.created_at).toLocaleString('ja-JP') : ''} />
+                </DetailSection>
+
+                <DetailSection title="見積先情報">
+                  <DetailRow label="種別" value={CLIENT_TYPE_LABELS[detail.quote.client_type] || detail.quote.client_type} />
+                  <DetailRow label="見積先名" value={detail.quote.client_name} />
+                  <DetailRow label="価格区分" value={detail.quote.price_type} />
+                </DetailSection>
+
+                <DetailSection title="ベースマシン">
+                  <DetailRow label="状態" value={detail.quote.machine_condition === 'new' ? '新車' : '中古車'} />
+                  <DetailRow label="メーカー" value={detail.quote.machine_maker} />
+                  <DetailRow label="機種名" value={detail.quote.machine_model} />
+                  <DetailRow label="製造年月" value={detail.quote.machine_year} />
+                  <DetailRow label="取付方式" value={detail.quote.mount_type === 'SW' ? 'サンドイッチ（SW）' : 'ダイレクトマウント（DM）'} />
+                  <DetailRow label="S規格" value={detail.quote.s_standard} />
+                  <DetailRow label="ECモデル" value={detail.quote.ec_model} />
+                  <DetailRow label="DCシステム" value={detail.quote.dc_system} />
+                </DetailSection>
+
+                <DetailSection title="品目一覧">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left py-1 px-2">品番</th>
+                        <th className="text-left py-1 px-2">品名</th>
+                        <th className="text-right py-1 px-2">定価</th>
+                        <th className="text-right py-1 px-2">数量</th>
+                        <th className="text-right py-1 px-2">販売価</th>
+                        <th className="text-right py-1 px-2">金額</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.items.map((item, i) => (
+                        <tr key={i} className="border-t border-gray-100">
+                          <td className="py-1 px-2 font-mono text-xs">{item.item_no || '—'}</td>
+                          <td className="py-1 px-2">{item.name_ja}</td>
+                          <td className="py-1 px-2 text-right">{item.list_price?.toLocaleString() ?? '—'}</td>
+                          <td className="py-1 px-2 text-right">{item.qty}</td>
+                          <td className="py-1 px-2 text-right">{item.unit_price?.toLocaleString() ?? '—'}</td>
+                          <td className="py-1 px-2 text-right">{item.amount?.toLocaleString() ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </DetailSection>
+
+                <DetailSection title="追加費用・配送条件">
+                  <DetailRow label={`国内運賃（${detail.quote.pallet_count}パレット）`} value={detail.quote.freight_cost ? `¥${detail.quote.freight_cost.toLocaleString()}` : undefined} />
+                  <DetailRow label="取付費用" value={detail.quote.install_cost ? `¥${detail.quote.install_cost.toLocaleString()}` : undefined} />
+                  <DetailRow label="ホース取付部材" value={detail.quote.hose_parts_cost ? `¥${detail.quote.hose_parts_cost.toLocaleString()}` : undefined} />
+                  <DetailRow label={`出張費用（${detail.quote.travel_count}回）`} value={detail.quote.travel_cost ? `¥${(detail.quote.travel_cost * detail.quote.travel_count).toLocaleString()}` : undefined} />
+                  <DetailRow label={`納入指導費（${detail.quote.guidance_count}回）`} value={detail.quote.guidance_cost ? `¥${(detail.quote.guidance_cost * detail.quote.guidance_count).toLocaleString()}` : undefined} />
+                  <DetailRow label="納入場所" value={detail.quote.delivery_location} />
+                  <DetailRow label="納期" value={detail.quote.delivery_date} />
+                  <DetailRow label="納品条件" value={detail.quote.delivery_terms} />
+                  <DetailRow label="支払条件" value={detail.quote.payment_terms} />
+                  <DetailRow label="備考" value={detail.quote.note} />
+                </DetailSection>
+
+                {detail.quote.has_ict && (
+                  <DetailSection title="ICT情報">
+                    <DetailRow label="メーカー" value={detail.quote.ict_maker} />
+                    <DetailRow label="機種名" value={detail.quote.ict_model} />
+                    <DetailRow label="備考" value={detail.quote.ict_note} />
+                  </DetailSection>
+                )}
+
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between"><span>小計（税抜）</span><span className="font-medium">¥{detail.quote.subtotal.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>消費税</span><span>¥{detail.quote.tax.toLocaleString()}</span></div>
+                  <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
+                    <span>御見積金額（税込）</span><span className="text-blue-700">¥{detail.quote.total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-gray-100 px-4 py-2 font-medium text-sm text-gray-700">{title}</div>
+      <div className="p-4 space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="flex text-sm gap-4">
+      <span className="text-gray-500 w-40 shrink-0">{label}</span>
+      <span className="text-gray-800">{value}</span>
     </div>
   );
 }

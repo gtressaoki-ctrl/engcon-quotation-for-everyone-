@@ -18,29 +18,17 @@ export default function Step10Confirm() {
   const tax = calcTax(subtotal);
   const total = subtotal + tax;
 
-  async function handlePdf() {
+  async function handleSave() {
     setLoading(true);
     try {
-      const res = await fetch('/api/generate-pdf', {
+      const res = await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...state, subtotal, tax, total }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'PDF生成に失敗しました');
+      if (!res.ok) throw new Error(data.error ?? '見積の保存に失敗しました');
       setQuoteNumber(data.quoteNumber);
-
-      // base64 PDF を直接ダウンロード
-      const binary = atob(data.pdf);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${data.quoteNumber}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
     } catch (e) {
       alert(e instanceof Error ? e.message : 'エラーが発生しました');
     } finally {
@@ -132,9 +120,9 @@ export default function Step10Confirm() {
 
       <div className="flex justify-between pt-4">
         <button onClick={state.prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={handlePdf} disabled={loading}
+        <button onClick={handleSave} disabled={loading || !!quoteNumber}
           className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition">
-          {loading ? '生成中...' : 'PDFを出力する'}
+          {loading ? '保存中...' : quoteNumber ? '保存済み' : '上記情報で見積保存する'}
         </button>
       </div>
     </div>
