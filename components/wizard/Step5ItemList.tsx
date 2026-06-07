@@ -147,19 +147,15 @@ export default function Step5ItemList() {
     if (machine_maker === 'CAT') {
       const { size, isGC, is07 } = parseCatModelInfo(machine_model);
 
-      if (mount_type === 'SW') {
-        built.push(makeItem('クイックカプラ（S）（機種別品番要確認）', undefined, price_type));
-      }
-
-      if (is07) {
-        // -07シリーズ：DC3構成（MIG2なし／CAT ADVジョイスティック使用）
+      if (dc_system === 'DC3') {
+        // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
         const qsc = await lk(CAT_DC3_QSC);
         built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
-        noteAdditions.push(CAT_07_NOTE);
+        if (is07) noteAdditions.push(CAT_07_NOTE);
         if (client_type === 'dealer') {
           noteAdditions.push(CAT_DEALER_NOTE);
         }
