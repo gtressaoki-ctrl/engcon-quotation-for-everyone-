@@ -171,8 +171,11 @@ export default function Step5ItemList() {
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
         const qscItemNo = CAT_DC3_QUICK_COUPLER_MAP[s_standard] ?? CAT_DC3_QSC;
-        const qsc = await lk(qscItemNo);
-        built.push(makeItem('クイックカプラ', qsc.price, price_type, qscItemNo, 1, qsc.description));
+        if (qscItemNo !== hitchItemNo) {
+          // 「Direct connect」ヒッチがクイックカプラを兼ねる機種では、マシンヒッチと同一品番のため二重計上を避ける
+          const qsc = await lk(qscItemNo);
+          built.push(makeItem('クイックカプラ', qsc.price, price_type, qscItemNo, 1, qsc.description));
+        }
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
         if (is07) noteAdditions.push(CAT_07_NOTE);
