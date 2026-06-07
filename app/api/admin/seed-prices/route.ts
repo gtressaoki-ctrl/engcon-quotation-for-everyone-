@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   const text = readFileSync(csvPath, 'utf-8').replace(/^﻿/, '');
-  const lines = text.split('\n').filter((l) => l.trim());
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
   const header = parseCSVLine(lines[0]);
   const itemIdx = header.indexOf('item_no');
   const descIdx = header.indexOf('description');
