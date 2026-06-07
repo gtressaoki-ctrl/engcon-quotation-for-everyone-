@@ -50,6 +50,8 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'HITACHI', model: 'ZX35U-5B', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1063455', hitch_item_no: '1065797' },
   { maker: 'HITACHI', model: 'ZX55UR-7', s_standard: 'S40', mount: 'SW', dc: 'DC2', ec_item_no: '1069528', hitch_item_no: '1079607' },
   { maker: 'HITACHI', model: 'ZX55UR-7', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1084265', hitch_item_no: '1065797' },
+  { maker: 'HITACHI', model: 'ZX50U-5B', s_standard: 'S40', mount: 'SW', dc: 'DC2', ec_item_no: '1069528', hitch_item_no: '1079607' },
+  { maker: 'HITACHI', model: 'ZX50U-5B', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1084265', hitch_item_no: '1065797' },
   { maker: 'HITACHI', model: 'ZX75US-7', s_standard: 'S45', mount: 'SW', dc: 'DC2', ec_item_no: '1068197', hitch_item_no: '1081565' },
   { maker: 'HITACHI', model: 'ZX75US-7', s_standard: 'S45', mount: 'DM', dc: 'DC2', ec_item_no: '1069688', hitch_item_no: '1057275' },
   { maker: 'HITACHI', model: 'ZX135US-7', s_standard: 'S60', mount: 'SW', dc: 'DC2', ec_item_no: '1067444', hitch_item_no: '1078990' },
