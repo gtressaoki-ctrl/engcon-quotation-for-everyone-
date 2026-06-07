@@ -11,6 +11,15 @@ const DC2_AUTO_MAKERS = ['KOMATSU', 'KUBOTA', 'HITACHI', 'SUMITOMO', 'KOBELCO', 
 // KOMATSU models that are DC3 (exceptions to DC2 rule)
 const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12'];
 
+// item_no -> EC機種名 の逆引き（MACHINE_CATALOG の ec_item_no から ec_model を推定するため）
+const ITEM_NO_TO_EC: Record<string, string> = {
+  '1080111': 'EC204B',
+  '1068693': 'EC206B',
+  '1067465': 'EC209B',
+  '1067444': 'EC214S',
+  '1067394': 'EC226S',
+};
+
 export default function Step3Machine() {
   const {
     machine_condition, machine_maker, machine_model, machine_year, s_standard,
@@ -50,7 +59,17 @@ export default function Step3Machine() {
     // Try MACHINE_CATALOG first (has exact item numbers), then MACHINE_LIST for auto-detection
     const catalogEntry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
     if (catalogEntry) {
-      update({ machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc });
+      const updates: Parameters<typeof update>[0] = {
+        machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc,
+      };
+      // ec_item_no からEC機種名を逆引きできれば反映、できなければ MACHINE_LIST の ec_primary を流用
+      if (catalogEntry.ec_item_no && ITEM_NO_TO_EC[catalogEntry.ec_item_no]) {
+        updates.ec_model = ITEM_NO_TO_EC[catalogEntry.ec_item_no];
+      } else {
+        const fallbackEntry = getMachineListEntry(machine_maker, model);
+        if (fallbackEntry) updates.ec_model = fallbackEntry.ec_primary;
+      }
+      update(updates);
       return;
     }
 
