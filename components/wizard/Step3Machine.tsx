@@ -56,7 +56,7 @@ export default function Step3Machine() {
 
     const listEntry = getMachineListEntry(machine_maker, model);
     if (listEntry) {
-      update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc });
+      update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc, ec_model: listEntry.ec_primary });
       return;
     }
 

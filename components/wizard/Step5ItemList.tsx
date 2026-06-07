@@ -160,6 +160,9 @@ export default function Step5ItemList() {
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
         noteAdditions.push(CAT_07_NOTE);
+        if (client_type === 'dealer') {
+          noteAdditions.push(CAT_DEALER_NOTE);
+        }
       } else {
         // 308以下、または313以上GCシリーズ：DC2/MIG2構成
         const setNo = (size != null && size >= 313 && isGC) ? CAT_DC2_SET_GC_313_PLUS : CAT_DC2_SET_NG_301_310;
@@ -174,10 +177,6 @@ export default function Step5ItemList() {
         }
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
-      }
-
-      if (client_type === 'dealer') {
-        noteAdditions.push(CAT_DEALER_NOTE);
       }
     } else if (dc_system === 'DC2') {
       for (const [no, fb, qty] of [
