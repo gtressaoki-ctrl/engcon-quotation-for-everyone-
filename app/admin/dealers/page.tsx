@@ -28,26 +28,50 @@ export default function DealersPage() {
 
   async function fetchDealers() {
     setLoading(true);
-    const { data } = await supabase.from('dealers').select('*').order('id');
+    const res = await fetch('/api/admin/dealers');
+    const { data } = await res.json();
     setDealers(data || []);
     setLoading(false);
   }
 
   async function addDealer() {
     if (!newName.trim()) return;
-    await supabase.from('dealers').insert({ name: newName.trim() });
+    const res = await fetch('/api/admin/dealers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName.trim() }),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      alert(`追加に失敗しました：${error}`);
+      return;
+    }
     setNewName('');
     fetchDealers();
   }
 
   async function toggleActive(id: number, current: boolean) {
-    await supabase.from('dealers').update({ is_active: !current }).eq('id', id);
+    const res = await fetch('/api/admin/dealers', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, is_active: !current }),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      alert(`更新に失敗しました：${error}`);
+      return;
+    }
     fetchDealers();
   }
 
   async function deleteDealer(id: number) {
     if (!confirm('このディーラーを削除しますか？')) return;
-    await supabase.from('dealers').delete().eq('id', id);
+    const res = await fetch(`/api/admin/dealers?id=${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const { error } = await res.json();
+      alert(`削除に失敗しました：${error}`);
+      return;
+    }
     fetchDealers();
   }
 
