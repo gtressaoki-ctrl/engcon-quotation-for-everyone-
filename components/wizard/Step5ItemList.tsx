@@ -39,6 +39,21 @@ const CAT_QSAFE = '8000271';        // ダイレクトマウント用 Qsafe
 const CAT_DC3_SET = '8001992';      // -07シリーズ DC3
 const CAT_DC3_QSC = '8002132';      // -07シリーズ QSC
 
+// CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
+const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
+  S60_DM: '1080267',
+  S60_SW: '1075311',
+  S70_SW: '1073879',
+  S80_SW: '1075472',
+};
+
+// CAT専用：DC3構成のクイックカプラ品番（S規格別。マスタデータより）
+const CAT_DC3_QUICK_COUPLER_MAP: Record<string, string> = {
+  S60: '1080537',
+  S70: '1081944',
+  S80: '1080777',
+};
+
 const CAT_07_NOTE =
   '【備考】チルトローテータ利用には下記が必須となります。\n' +
   '①493-9769　CAT ADV　ジョイスティック　②624-3083　CAT SEA (3rd party tiltrotator)\n' +
@@ -121,7 +136,11 @@ export default function Step5ItemList() {
     const catalogEntry =
       lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
       fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
-    const ecItemNo = (mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model];
+    const catDc3TiltOverride = (machine_maker === 'CAT' && dc_system === 'DC3')
+      ? CAT_DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
+      : undefined;
+    const ecItemNo = catDc3TiltOverride
+      ?? ((mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model]);
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
 
@@ -151,8 +170,9 @@ export default function Step5ItemList() {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
-        const qsc = await lk(CAT_DC3_QSC);
-        built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
+        const qscItemNo = CAT_DC3_QUICK_COUPLER_MAP[s_standard] ?? CAT_DC3_QSC;
+        const qsc = await lk(qscItemNo);
+        built.push(makeItem('クイックカプラ', qsc.price, price_type, qscItemNo, 1, qsc.description));
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
         if (is07) noteAdditions.push(CAT_07_NOTE);
