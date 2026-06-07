@@ -22,8 +22,8 @@ function parseCSVLine(line: string): string[] {
 // Seeds the price_master table from supabase/price_master.csv
 // Requires X-Admin-Key header matching SUPABASE_SERVICE_ROLE_KEY
 export async function POST(req: NextRequest) {
-  const adminKey = req.headers.get('x-admin-key');
-  if (!adminKey || adminKey !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const adminKey = req.headers.get('x-admin-key')?.trim();
+  if (!adminKey || adminKey !== process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   }
 
   async function runSetup() {
-    const key = prompt('サービスロールキーを入力してください:');
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
     if (!key) return;
     setSetupResult('実行中...');
     try {
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
   }
 
   async function seedPriceMaster() {
-    const key = prompt('サービスロールキーを入力してください:');
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
     if (!key) return;
     setSeeding(true);
     setSeedResult('');
