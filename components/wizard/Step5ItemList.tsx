@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
-import { calculateSalesPrice, roundPrice } from '@/lib/pricing';
+import { calculateSalesPrice, calculateRsmCustomerPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
 import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
@@ -283,6 +283,12 @@ export default function Step5ItemList() {
                 <th className="border border-gray-200 px-3 py-2 text-right w-16">数量</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">販売価</th>
                 <th className="border border-gray-200 px-3 py-2 text-right w-24">金額</th>
+                {price_type === 'rsm' && (
+                  <>
+                    <th className="border border-gray-200 px-3 py-2 text-right w-24">御客様販売価</th>
+                    <th className="border border-gray-200 px-3 py-2 text-right w-24">御客様販売金額</th>
+                  </>
+                )}
                 <th className="border border-gray-200 px-3 py-2 w-10"></th>
               </tr>
             </thead>
@@ -321,6 +327,16 @@ export default function Step5ItemList() {
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     {item.amount != null ? item.amount.toLocaleString() : '—'}
                   </td>
+                  {price_type === 'rsm' && (
+                    <>
+                      <td className="border border-gray-200 px-2 py-1 text-right">
+                        {item.list_price != null ? calculateRsmCustomerPrice(item.list_price).toLocaleString() : '—'}
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1 text-right">
+                        {item.list_price != null ? (calculateRsmCustomerPrice(item.list_price) * item.qty).toLocaleString() : '—'}
+                      </td>
+                    </>
+                  )}
                   <td className="border border-gray-200 px-2 py-1 text-center">
                     <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
                   </td>
