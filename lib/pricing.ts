@@ -9,7 +9,7 @@ export function roundPrice(price: number): number {
 }
 
 export function getPriceType(creatorType: CreatorType, clientType: ClientType, clientName?: string): PriceType {
-  if (clientType === 'dealer' && clientName?.trim().toUpperCase() === 'RSM') return 'rsm';
+  if (clientType === 'dealer' && clientName?.trim().toUpperCase().includes('RSM')) return 'rsm';
   if (creatorType === 'dealer') return 'dealer';
   if (clientType === 'dealer') return 'dealer';
   if (clientType === 'reseller') return 'reseller';
