@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
-import { calcFreight, calcTax } from '@/lib/pricing';
+import { calcFreight, calcTax, calculateRsmCustomerPrice } from '@/lib/pricing';
 
 export default function Step10Confirm() {
   const state = useWizardStore();
@@ -77,18 +77,33 @@ export default function Step10Confirm() {
               <th className="text-right py-1 px-2">数量</th>
               <th className="text-right py-1 px-2">販売価</th>
               <th className="text-right py-1 px-2">金額</th>
+              {state.price_type === 'rsm' && (
+                <>
+                  <th className="text-right py-1 px-2">御客様販売価</th>
+                  <th className="text-right py-1 px-2">御客様販売金額</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
-            {state.items.map((item, i) => (
-              <tr key={i} className="border-t border-gray-100">
-                <td className="py-1 px-2">{item.name_ja}</td>
-                <td className="py-1 px-2 text-right">{item.list_price?.toLocaleString() ?? '—'}</td>
-                <td className="py-1 px-2 text-right">{item.qty}</td>
-                <td className="py-1 px-2 text-right">{item.unit_price?.toLocaleString() ?? '—'}</td>
-                <td className="py-1 px-2 text-right">{item.amount?.toLocaleString() ?? '—'}</td>
-              </tr>
-            ))}
+            {state.items.map((item, i) => {
+              const resaleUnit = item.list_price != null ? calculateRsmCustomerPrice(item.list_price) : null;
+              return (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="py-1 px-2">{item.name_ja}</td>
+                  <td className="py-1 px-2 text-right">{item.list_price?.toLocaleString() ?? '—'}</td>
+                  <td className="py-1 px-2 text-right">{item.qty}</td>
+                  <td className="py-1 px-2 text-right">{item.unit_price?.toLocaleString() ?? '—'}</td>
+                  <td className="py-1 px-2 text-right">{item.amount?.toLocaleString() ?? '—'}</td>
+                  {state.price_type === 'rsm' && (
+                    <>
+                      <td className="py-1 px-2 text-right">{resaleUnit?.toLocaleString() ?? '—'}</td>
+                      <td className="py-1 px-2 text-right">{resaleUnit != null ? (resaleUnit * item.qty).toLocaleString() : '—'}</td>
+                    </>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </Section>
