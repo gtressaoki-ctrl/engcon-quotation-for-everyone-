@@ -13,7 +13,7 @@ const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12'];
 
 export default function Step3Machine() {
   const {
-    machine_condition, machine_maker, machine_model, machine_year,
+    machine_condition, machine_maker, machine_model, machine_year, s_standard,
     cabin_confirmed, piping_confirmed, update, nextStep, prevStep,
   } = useWizardStore();
 
@@ -35,7 +35,11 @@ export default function Step3Machine() {
       update({ machine_model: '' });
       return;
     }
+    applyModelLookup(model);
+  }
 
+  // モデル名からS規格・DCシステムを自動判定して反映する（カタログ一致時のみ）
+  function applyModelLookup(model: string) {
     // KOMATSU DC3 exception models
     if (machine_maker.toUpperCase() === 'KOMATSU' &&
       KOMATSU_DC3_MODELS.some((m) => m.toLowerCase() === model.toLowerCase())) {
@@ -47,14 +51,21 @@ export default function Step3Machine() {
     const catalogEntry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
     if (catalogEntry) {
       update({ machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc });
-    } else {
-      const listEntry = getMachineListEntry(machine_maker, model);
-      if (listEntry) {
-        update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc });
-      } else {
-        update({ machine_model: model });
-      }
+      return;
     }
+
+    const listEntry = getMachineListEntry(machine_maker, model);
+    if (listEntry) {
+      update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc });
+      return;
+    }
+
+    // 一致なし：機種名のみ反映（S規格は手動確認が必要）
+    update({ machine_model: model });
+  }
+
+  function handleCustomModelChange(value: string) {
+    applyModelLookup(value);
   }
 
   function handleNext() {
@@ -107,7 +118,7 @@ export default function Step3Machine() {
               <input
                 type="text"
                 value={machine_model}
-                onChange={(e) => update({ machine_model: e.target.value })}
+                onChange={(e) => handleCustomModelChange(e.target.value)}
                 placeholder="機種名を直接入力"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -115,6 +126,11 @@ export default function Step3Machine() {
             {isInCatalog && (
               <p className="text-xs text-green-600">
                 ✓ カタログ機種：S規格・マシンヒッチ品番が自動設定されます
+              </p>
+            )}
+            {!isInCatalog && machine_model && !getMachineListEntry(machine_maker, machine_model) && !MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === machine_model) && (
+              <p className="text-xs text-yellow-600">
+                ⚠ カタログに一致する機種が見つかりません。S規格（現在：{s_standard}）を STEP 4 で必ず確認してください。
               </p>
             )}
           </div>

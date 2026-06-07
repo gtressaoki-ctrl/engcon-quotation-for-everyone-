@@ -131,6 +131,14 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'HITACHI', model: 'ZX225USR-7', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'HITACHI', model: 'ZX240-7', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'HITACHI', model: 'ZX330-7', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC2' },
+  // KATO（加藤製作所）─ 運転質量から engcon S規格を推定
+  { maker: 'KATO', model: 'HD308US-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD512-7', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD514MR-7', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD820-8', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD823MR-8', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD1025-7', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD1430-7', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC2' },
   // KOBELCO
   { maker: 'KOBELCO', model: 'SK20SR-6', s_standard: 'S30', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK20UR-6', s_standard: 'S30', ec_primary: 'EC204B', dc: 'DC2' },
@@ -179,6 +187,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'KOMATSU', model: 'PC170LC-11', s_standard: 'S60', ec_primary: 'EC219', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC200-11/PC200LC-11', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC200i-11', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
+  { maker: 'KOMATSU', model: 'PC200i-12', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'KOMATSU', model: 'PC220-11/PC220LC-11', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC228US-11/PC228USLC-11', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC230-11/PC230LC-11', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
@@ -195,6 +204,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'KUBOTA', model: 'RX-506/RX506S', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KUBOTA', model: 'U-55-6E', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KUBOTA', model: 'KX080-4S2', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
+  { maker: 'KUBOTA', model: 'KX57-6E', s_standard: 'S40', ec_primary: 'EC206B', dc: 'DC2' },
   // SUMITOMO
   { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
   { maker: 'SUMITOMO', model: 'SH75XU-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
