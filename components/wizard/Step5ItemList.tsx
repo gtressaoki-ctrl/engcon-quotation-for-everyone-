@@ -54,7 +54,7 @@ const CAT_DC3_QUICK_COUPLER_MAP: Record<string, string> = {
   S80: '1080777',
 };
 
-const CAT_07_NOTE =
+const CAT_DC3_TILTROTATOR_NOTE =
   '【備考】チルトローテータ利用には下記が必須となります。\n' +
   '①493-9769　CAT ADV　ジョイスティック　②624-3083　CAT SEA (3rd party tiltrotator)\n' +
   'ICT をご利用になる場合は別途　Grade Indication for 3rd partyが必要になると思われます。\n' +
@@ -64,13 +64,12 @@ const CAT_DEALER_NOTE =
   'CATと取付の役割分担についての打合せをお願いいたします。\n' +
   '機能キャリブレーションならびにICTとの接続はキャタピラーに依頼するのがいいと思われます。';
 
-// 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系 / "323-07" → -07系）
-function parseCatModelInfo(model: string): { size: number | null; isGC: boolean; is07: boolean } {
+// 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系）
+function parseCatModelInfo(model: string): { size: number | null; isGC: boolean } {
   const sizeMatch = model.match(/(\d{3})/);
   return {
     size: sizeMatch ? parseInt(sizeMatch[1], 10) : null,
     isGC: /GC/i.test(model),
-    is07: /-0?7(\D|$)/.test(model.trim()),
   };
 }
 
@@ -164,7 +163,7 @@ export default function Step5ItemList() {
     const noteAdditions: string[] = [];
 
     if (machine_maker === 'CAT') {
-      const { size, isGC, is07 } = parseCatModelInfo(machine_model);
+      const { size, isGC } = parseCatModelInfo(machine_model);
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
@@ -178,7 +177,7 @@ export default function Step5ItemList() {
         }
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
-        if (is07) noteAdditions.push(CAT_07_NOTE);
+        noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
         if (client_type === 'dealer') {
           noteAdditions.push(CAT_DEALER_NOTE);
         }
