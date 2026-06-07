@@ -1,7 +1,7 @@
 'use client';
 
 import { useWizardStore } from '@/lib/wizardStore';
-import { getCatalogModels, MACHINE_CATALOG, getMachineListEntry } from '@/lib/machineCatalog';
+import { getCatalogModels, getMachineListEntry, findMachineCatalogEntry } from '@/lib/machineCatalog';
 
 const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'YANMAR', 'KATO', 'VOLVO', 'その他'];
 
@@ -57,7 +57,7 @@ export default function Step3Machine() {
     }
 
     // Try MACHINE_CATALOG first (has exact item numbers), then MACHINE_LIST for auto-detection
-    const catalogEntry = MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === model);
+    const catalogEntry = findMachineCatalogEntry(machine_maker, model);
     if (catalogEntry) {
       const updates: Parameters<typeof update>[0] = {
         machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc,
@@ -147,7 +147,7 @@ export default function Step3Machine() {
                 ✓ カタログ機種：S規格・マシンヒッチ品番が自動設定されます
               </p>
             )}
-            {!isInCatalog && machine_model && !getMachineListEntry(machine_maker, machine_model) && !MACHINE_CATALOG.find((e) => e.maker === machine_maker && e.model === machine_model) && (
+            {!isInCatalog && machine_model && !getMachineListEntry(machine_maker, machine_model) && !findMachineCatalogEntry(machine_maker, machine_model) && (
               <p className="text-xs text-yellow-600">
                 ⚠ カタログに一致する機種が見つかりません。S規格（現在：{s_standard}）を STEP 4 で必ず確認してください。
               </p>

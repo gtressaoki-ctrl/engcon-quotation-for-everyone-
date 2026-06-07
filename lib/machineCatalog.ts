@@ -102,11 +102,11 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'CAT', model: '315GC', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'CAT', model: '317', s_standard: 'S60', ec_primary: 'EC219', dc: 'DC3' },
   { maker: 'CAT', model: '320', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
-  { maker: 'CAT', model: '320GC', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
+  { maker: 'CAT', model: '320GC', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'CAT', model: '323', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'CAT', model: '326', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'CAT', model: '330', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC3' },
-  { maker: 'CAT', model: '330GC', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC3' },
+  { maker: 'CAT', model: '330GC', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC2' },
   { maker: 'CAT', model: '336', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC3' },
   // HITACHI
   { maker: 'HITACHI', model: 'ZX20U-5A', s_standard: 'S30', ec_primary: 'EC204B', dc: 'DC2' },
@@ -253,8 +253,19 @@ export function getCatalogModels(maker: string): string[] {
   return MACHINE_LIST.filter((e) => e.maker === maker).map((e) => e.model);
 }
 
+// 表記ゆれ（全角/半角・空白・大小文字）を吸収して比較するための正規化
+function normalizeModel(model: string): string {
+  return model.replace(/\s+/g, '').toUpperCase();
+}
+
 export function getMachineListEntry(maker: string, model: string): MachineListEntry | undefined {
-  return MACHINE_LIST.find((e) => e.maker === maker && e.model === model);
+  return MACHINE_LIST.find((e) => e.maker === maker && e.model === model)
+    ?? MACHINE_LIST.find((e) => e.maker === maker && normalizeModel(e.model) === normalizeModel(model));
+}
+
+export function findMachineCatalogEntry(maker: string, model: string): MachineCatalogEntry | undefined {
+  return MACHINE_CATALOG.find((e) => e.maker === maker && e.model === model)
+    ?? MACHINE_CATALOG.find((e) => e.maker === maker && normalizeModel(e.model) === normalizeModel(model));
 }
 
 export function lookupCatalog(
