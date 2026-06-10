@@ -1,5 +1,20 @@
 import type { SStandard } from '@/types/quote';
 
+// S規格別「ECOブロック付きブラケット」の対象品（GS-WD/GS-BPE系のEC-Oilブロック内蔵ブラケット）
+const ECO_BRACKET_PATTERNS: Record<string, string[]> = {
+  '40': ['GS-WD-QS40 -T59', 'GS-BPE1-QS40-T59', 'GS-BPE2-QS40-T59'],
+  '45': ['GS-WD-QS45-T5', 'GS-BPE2-QS45-T5'],
+  '60': [
+    'GS-WD-QS60 -T1', 'GS-WD-QS60 -T2', 'GS-WD-QS60 -T8', 'GS-WD-QS60 -T26', 'GS-WD-QS60 -T37', 'GS-WD-QS60 -T38', 'GS-WD-QS60 -T44',
+    'GS-BPE2-QS60-T2', 'GS-BPE2-QS60-T44', 'GS-BPE3-QS60-T2', 'GS-BPE3-QS60-T8', 'GS-BPE4-QS60-T2',
+  ],
+  '70': [
+    'GS-WD-QS70 -T11', 'GS-WD-QS70 -T12', 'GS-WD-QS70 -T18', 'GS-WD-QS70 -T20', 'GS-WD-QS70 -T32', 'GS-WD-QS70 -T50',
+    'GS-BPE2-QS70-T12', 'GS-BPE2-QS70-T20', 'GS-BPE3-QS70-T12', 'GS-BPE3-QS70-T20', 'GS-BPE4-QS70-T12',
+  ],
+  '80': ['GS-WD-QS80 -T35', 'GS-WD-QS80 -T40', 'GS-WD-QS80 -T41', 'GS-WD-QS80 -T53', 'GS-BPE-QS80 -SK30/TG55-T12'],
+};
+
 export interface AttachmentCategory {
   id: string;
   label_ja: string;
@@ -55,8 +70,7 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
   },
   {
     id: 'eco_bracket', label_ja: 'ECOブロック付きブラケット', group: 'mechanical',
-    getPatterns: (n) => [`Attachment block ECO${n}%`],
-    keepFn: (d) => /^Attachment block ECO\d/.test(d),
+    getPatterns: (n) => ECO_BRACKET_PATTERNS[n] ?? [],
   },
   // --- 油圧式 ---
   {
