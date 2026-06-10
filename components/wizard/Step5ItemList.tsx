@@ -171,8 +171,9 @@ export default function Step5ItemList() {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
+        // クイックカプラはSWのみ構成品（DMはマシンヒッチが直結のため構成品に含まない）
         const qscItemNo = CAT_DC3_QUICK_COUPLER_MAP[s_standard] ?? CAT_DC3_QSC;
-        if (qscItemNo !== hitchItemNo) {
+        if (mount_type === 'SW' && qscItemNo !== hitchItemNo) {
           // 「Direct connect」ヒッチがクイックカプラを兼ねる機種では、マシンヒッチと同一品番のため二重計上を避ける
           const qsc = await lk(qscItemNo);
           built.push(makeItem('クイックカプラ', qsc.price, price_type, qscItemNo, 1, qsc.description));
