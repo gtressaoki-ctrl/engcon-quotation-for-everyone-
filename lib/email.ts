@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const NOTIFY_TO = 'saoki@gtres.jp';
+const NOTIFY_TO = 'g.tres.saoki@gmail.com';
 const FROM = 'engcon見積システム <onboarding@resend.dev>';
 
 export async function sendDealerQuoteNotification(params: {
