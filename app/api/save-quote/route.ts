@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateQuoteNumber } from '@/lib/quoteNumber';
 import { createServiceClient } from '@/lib/supabase';
+import { sendDealerQuoteNotification } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -64,6 +65,20 @@ export async function POST(req: NextRequest) {
         is_custom:  item.is_custom,
       }));
       await supabase.from('quote_items').insert(itemInserts);
+    }
+
+    if (body.creator_type === 'dealer') {
+      try {
+        await sendDealerQuoteNotification({
+          quoteNumber,
+          creatorCompany: body.creator_company,
+          creatorName: body.creator_name,
+          clientName: body.client_name,
+          total: body.total,
+        });
+      } catch (emailErr) {
+        console.error('Quote notification email error:', emailErr);
+      }
     }
 
     return NextResponse.json({
