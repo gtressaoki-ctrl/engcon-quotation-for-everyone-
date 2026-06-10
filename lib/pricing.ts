@@ -16,14 +16,15 @@ export function getPriceType(creatorType: CreatorType, clientType: ClientType, c
   return 'enduser';
 }
 
-export function calculateSalesPrice(listPrice: number, priceType: PriceType): number {
+export function calculateSalesPrice(listPrice: number, priceType: PriceType, resellerRate?: number): number {
   let raw: number;
   switch (priceType) {
     case 'dealer':
       raw = listPrice * 0.75 * 1.1;
       break;
     case 'reseller':
-      raw = listPrice * 0.85;
+      // 未登録販売店：確認した「定価に対する掛け率」（%）で販売価格を算出
+      raw = listPrice * ((resellerRate ?? 85) / 100);
       break;
     case 'enduser':
       raw = listPrice * 0.75 * 1.2;

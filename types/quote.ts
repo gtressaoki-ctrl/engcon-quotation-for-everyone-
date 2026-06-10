@@ -29,6 +29,7 @@ export interface WizardState {
 
   client_type: ClientType;
   client_name: string;
+  reseller_rate?: number;
 
   machine_condition: MachineCondition;
   machine_maker: string;

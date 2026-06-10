@@ -80,7 +80,7 @@ function appendNote(current: string, addition: string): string {
 
 export default function Step5ItemList() {
   const {
-    mount_type, s_standard, ec_model, dc_system, price_type, machine_maker, machine_model,
+    mount_type, s_standard, ec_model, dc_system, price_type, reseller_rate, machine_maker, machine_model,
     client_type, note, items, setItems, update, nextStep, prevStep,
   } = useWizardStore();
   const [loading, setLoading] = useState(false);
@@ -114,7 +114,7 @@ export default function Step5ItemList() {
     qty = 1,
     official_name?: string
   ): QuoteItem {
-    const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type_) : undefined;
+    const unit_price = list_price != null ? calculateSalesPrice(list_price, price_type_, reseller_rate) : undefined;
     return {
       sort_order: 0,
       item_no,
@@ -149,11 +149,13 @@ export default function Step5ItemList() {
     const hitchFallback = `マシンヒッチ（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
     built.push(makeItem(hitchFallback, hitch.price, price_type, hitchItemNo, 1, hitch.description));
 
-    // 3. グリッパー
+    // 3. グリッパー（マシンヒッチ＝グリッパー本体の機種では二重計上を避ける）
     const grdInfo = GRD_ITEM_MAP[s_standard];
     if (grdInfo) {
-      const grd = await lookup(grdInfo.item_no);
-      built.push(makeItem(grdInfo.name, grd.price, price_type, grdInfo.item_no, 1, grd.description));
+      if (grdInfo.item_no !== hitchItemNo) {
+        const grd = await lookup(grdInfo.item_no);
+        built.push(makeItem(grdInfo.name, grd.price, price_type, grdInfo.item_no, 1, grd.description));
+      }
     } else {
       built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
     }
