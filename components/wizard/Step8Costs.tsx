@@ -6,12 +6,27 @@ import type { ExtraCost, QuoteItem } from '@/types/quote';
 
 // コントロール系・消耗品はパレット不要（チルトローテータ本体やマシンヒッチに同梱されるため）。
 // 物理機器（チルトローテータ・マシンヒッチ・グリッパー・クイックカプラ・アタッチメント）を各1パレット計上
+// 表示名がマスタの英語表記（説明文）になる場合があるため、品番ベースで判定する
+const NON_PALLET_ITEM_NOS = new Set([
+  '8001080', // CAT DC2/MIG2セット（NG 301-310）
+  '8001221', // CAT DC2/MIG2セット（GC 313+）
+  '8002201', // QSCシステム
+  '8000271', // Qsafe
+  '8001992', // DC3コントロールシステム
+  '8002251', // DC3 QSCシステム
+  '8002535', // DC2コントロールシステム
+  '841528',  // MIG2
+  '540190',  // ホースプロテクション
+]);
+
+// 品番が無いカスタム品目向けのフォールバック判定
 const CONTROL_KEYWORDS = ['コントロールシステム', 'QSCシステム', 'Qsafe', 'ホースプロテクション', 'MIG2', 'C2C', 'EXTDC'];
 
 function calcPalletCount(items: QuoteItem[]): number {
-  return items.filter((item) =>
-    !CONTROL_KEYWORDS.some((kw) => item.name_ja.includes(kw))
-  ).length;
+  return items.filter((item) => {
+    if (item.item_no) return !NON_PALLET_ITEM_NOS.has(item.item_no);
+    return !CONTROL_KEYWORDS.some((kw) => item.name_ja.includes(kw));
+  }).length;
 }
 
 export default function Step8Costs() {
