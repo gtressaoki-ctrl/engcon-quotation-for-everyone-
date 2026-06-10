@@ -17,6 +17,8 @@ export default function AdminDashboard() {
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState('');
   const [setupResult, setSetupResult] = useState('');
+  const [inventoryUploading, setInventoryUploading] = useState(false);
+  const [inventoryResult, setInventoryResult] = useState('');
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
   const [detail, setDetail] = useState<{ quote: QuoteRecord; items: QuoteItem[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -90,6 +92,36 @@ export default function AdminDashboard() {
     setSeeding(false);
   }
 
+  async function uploadInventory(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
+    if (!key) return;
+
+    setInventoryUploading(true);
+    setInventoryResult('');
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch('/api/admin/inventory', {
+        method: 'POST',
+        headers: { 'x-admin-key': key },
+        body,
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setInventoryResult(`✓ 在庫データ更新完了: ${json.inserted}件`);
+      } else {
+        setInventoryResult(`✗ エラー: ${json.error}`);
+      }
+    } catch {
+      setInventoryResult('✗ ネットワークエラー');
+    }
+    setInventoryUploading(false);
+  }
+
   function exportCsv() {
     const headers = ['見積番号', '作成日', '作成者会社', '担当者', '見積先', '種別', '合計金額'];
     const rows = quotes.map((q) => [
@@ -145,6 +177,11 @@ export default function AdminDashboard() {
             {seeding ? '投入中...' : '価格マスタ投入'}
           </button>
           {seedResult && <span className="text-xs text-gray-600">{seedResult}</span>}
+          <label className={`text-sm bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded cursor-pointer ${inventoryUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+            {inventoryUploading ? '更新中...' : '在庫データ更新'}
+            <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={uploadInventory} disabled={inventoryUploading} />
+          </label>
+          {inventoryResult && <span className="text-xs text-gray-600">{inventoryResult}</span>}
           <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">ログアウト</button>
         </div>
       </header>
