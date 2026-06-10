@@ -18,6 +18,7 @@ const initialState: WizardState = {
 
   client_type: 'dealer',
   client_name: '',
+  reseller_rate: undefined,
 
   machine_condition: 'new',
   machine_maker: 'CAT',

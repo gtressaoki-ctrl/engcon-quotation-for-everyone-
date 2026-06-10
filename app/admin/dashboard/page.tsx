@@ -301,7 +301,8 @@ export default function AdminDashboard() {
                 </DetailSection>
 
                 <DetailSection title="品目一覧">
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[640px]">
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="text-left py-1 px-2">品番</th>
@@ -325,6 +326,7 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </DetailSection>
 
                 <DetailSection title="追加費用・配送条件">

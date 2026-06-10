@@ -12,7 +12,7 @@ const DEALERS_DEFAULT = [
 ];
 
 export default function Step2Client() {
-  const { creator_type, creator_company, client_type, client_name, update, nextStep, prevStep } = useWizardStore();
+  const { creator_type, creator_company, client_type, client_name, reseller_rate, update, nextStep, prevStep } = useWizardStore();
   const [dealers, setDealers] = useState<string[]>(DEALERS_DEFAULT);
   const [customDealer, setCustomDealer] = useState('');
 
@@ -29,6 +29,10 @@ export default function Step2Client() {
   function handleNext() {
     if (!client_name.trim()) {
       alert('見積先を入力してください');
+      return;
+    }
+    if (client_type === 'reseller' && !(reseller_rate != null && reseller_rate > 0 && reseller_rate <= 100)) {
+      alert('定価に対する掛け率を入力してください');
       return;
     }
     const price_type = getPriceType(creator_type, client_type, client_name);
@@ -120,6 +124,25 @@ export default function Step2Client() {
             value={client_name}
             onChange={(e) => update({ client_name: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
+
+      {client_type === 'reseller' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            定価に対する掛け率（％） <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-gray-500 mb-1">販売店との取り決めに基づく掛け率を入力してください（例：85掛けの場合は「85」）</p>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            step="0.1"
+            value={reseller_rate ?? ''}
+            onChange={(e) => update({ reseller_rate: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+            placeholder="例：85"
+            className="w-32 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       )}

@@ -4,8 +4,10 @@ import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { ExtraCost, QuoteItem } from '@/types/quote';
 
-// コントロール系・消耗品はパレット不要。物理機器（チルトローテータ・クイックカプラ・グリッパー・アタッチメント）を各1パレット計上
-const CONTROL_KEYWORDS = ['コントロールシステム', 'QSCシステム', 'Qsafe', 'ホースプロテクション', 'MIG2', 'C2C', 'EXTDC'];
+// コントロール系・消耗品・クイックカプラ単体はパレット不要（チルトローテータ本体や
+// マシンヒッチに同梱されるため）。物理機器（チルトローテータ・マシンヒッチ・グリッパー・
+// アタッチメント）を各1パレット計上
+const CONTROL_KEYWORDS = ['コントロールシステム', 'QSCシステム', 'Qsafe', 'クイックカプラ', 'ホースプロテクション', 'MIG2', 'C2C', 'EXTDC'];
 
 function calcPalletCount(items: QuoteItem[]): number {
   return items.filter((item) =>
@@ -55,7 +57,7 @@ export default function Step8Costs() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-700">パレット数（自動計算）</p>
-            <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・クイックカプラ・グリッパー・アタッチメントを各1パレットでカウント</p>
+            <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・マシンヒッチ・グリッパー・アタッチメントを各1パレットでカウント</p>
           </div>
           <span className="text-2xl font-bold text-gray-800">{pallet_count} パレット</span>
         </div>
