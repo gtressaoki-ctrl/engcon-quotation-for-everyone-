@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
 
-  const items: { item_no: string; part_name: string | null; balance: number }[] = [];
+  const itemsByNo = new Map<string, { item_no: string; part_name: string | null; balance: number }>();
   for (const row of rows) {
     const location = String(row['Location'] ?? '').trim().toUpperCase();
     if (location !== 'FLOOR') continue;
@@ -43,8 +43,15 @@ export async function POST(req: NextRequest) {
     if (!itemNo || !Number.isFinite(balance)) continue;
 
     const partName = row['Part name'] != null ? String(row['Part name']).trim() : null;
-    items.push({ item_no: itemNo, part_name: partName, balance });
+    const existing = itemsByNo.get(itemNo);
+    if (existing) {
+      existing.balance += balance;
+    } else {
+      itemsByNo.set(itemNo, { item_no: itemNo, part_name: partName, balance });
+    }
   }
+
+  const items = Array.from(itemsByNo.values());
 
   if (items.length === 0) {
     return NextResponse.json({ error: '有効なFLOOR在庫データが見つかりません' }, { status: 400 });
