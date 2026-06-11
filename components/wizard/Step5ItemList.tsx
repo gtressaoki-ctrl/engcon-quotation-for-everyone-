@@ -135,21 +135,13 @@ export default function Step5ItemList() {
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
 
-    // 2. マシンヒッチ（DMはマシンヒッチを使用しないため追加しない）
-    const hitchItemNo = catalogEntry?.hitch_item_no ?? undefined;
-    if (mount_type === 'SW') {
-      const hitch = hitchItemNo ? await lookup(hitchItemNo) : {};
-      const hitchFallback = `マシンヒッチ（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
-      built.push(makeItem(hitchFallback, hitch.price, price_type, hitchItemNo, 1, hitch.description));
-    }
-
-    // 3. グリッパー（SW・DMどちらも使用。マシンヒッチと同一品番の場合は二重計上を避ける）
+    // 2. グリッパー（GRD。機種別品番があれば優先、なければS規格別の汎用品番にフォールバック。SW・DM共通で1点のみ計上）
     const grdInfo = GRD_ITEM_MAP[s_standard];
-    if (grdInfo) {
-      if (mount_type === 'DM' || grdInfo.item_no !== hitchItemNo) {
-        const grd = await lookup(grdInfo.item_no);
-        built.push(makeItem(grdInfo.name, grd.price, price_type, grdInfo.item_no, 1, grd.description));
-      }
+    const grdItemNo = catalogEntry?.hitch_item_no ?? grdInfo?.item_no;
+    if (grdItemNo) {
+      const grd = await lookup(grdItemNo);
+      const grdFallback = grdInfo?.name ?? `グリッパー（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
+      built.push(makeItem(grdFallback, grd.price, price_type, grdItemNo, 1, grd.description));
     } else {
       built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
     }
@@ -163,7 +155,6 @@ export default function Step5ItemList() {
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
-        // クイックカプラ（Direct connectカプラ）はSWのマシンヒッチと同一品番のため別計上しない
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
         const hose = await lk('540190');
