@@ -37,7 +37,6 @@ const CAT_DC2_SET_GC_313_PLUS = '8001221';
 const CAT_DC2_QSC = '8002201';      // サンドイッチ用 QSC
 const CAT_QSAFE = '8000271';        // ダイレクトマウント用 Qsafe
 const CAT_DC3_SET = '8001992';      // -07シリーズ DC3
-const CAT_DC3_QSC = '8002132';      // -07シリーズ QSC
 
 // CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
 const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
@@ -45,13 +44,6 @@ const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S60_SW: '1075311',
   S70_SW: '1073879',
   S80_SW: '1075472',
-};
-
-// CAT専用：DC3構成のクイックカプラ品番（S規格別。マスタデータより）
-const CAT_DC3_QUICK_COUPLER_MAP: Record<string, string> = {
-  S60: '1080537',
-  S70: '1081944',
-  S80: '1080777',
 };
 
 const CAT_DC3_TILTROTATOR_NOTE =
@@ -171,15 +163,9 @@ export default function Step5ItemList() {
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
+        // クイックカプラ（Direct connectカプラ）はSWのマシンヒッチと同一品番のため別計上しない
         const dc3 = await lk(CAT_DC3_SET);
         built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
-        // クイックカプラはSWのみ構成品（DMはマシンヒッチが直結のため構成品に含まない）
-        const qscItemNo = CAT_DC3_QUICK_COUPLER_MAP[s_standard] ?? CAT_DC3_QSC;
-        if (mount_type === 'SW' && qscItemNo !== hitchItemNo) {
-          // 「Direct connect」ヒッチがクイックカプラを兼ねる機種では、マシンヒッチと同一品番のため二重計上を避ける
-          const qsc = await lk(qscItemNo);
-          built.push(makeItem('クイックカプラ', qsc.price, price_type, qscItemNo, 1, qsc.description));
-        }
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
         noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
