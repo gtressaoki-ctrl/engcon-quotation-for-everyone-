@@ -31,6 +31,17 @@ const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
   S70: { item_no: '1074818', name: 'グリッパー GRD70' },
 };
 
+// GRD系品番（グリッパーのバリエーション品番）。machineCatalogのhitch_item_noに
+// これらが入っている場合はグリッパーであり、マシンヒッチ/クイックカプラではない
+const GRD_TYPE_HITCH_ITEM_NOS = new Set([
+  '1065797', // GRD40Q-QSM40
+  '1071055', // GRD60B-QSD60/QSM60
+  '1074818', // GRD70B-QSM70
+  '1057275', // GRD45/50Q-QSD45/50/QSM45/50-engcon black
+  '1046870', // GRD70Q-QSM70
+  '1057282', // GRD60Q-QSD60/QSM60-engcon black
+]);
+
 // CAT専用：DC2/MIG2セット品番（308以下＝CAT NG 301-310 用 / 313以上GCシリーズ用）
 const CAT_DC2_SET_NG_301_310 = '8001080';
 const CAT_DC2_SET_GC_313_PLUS = '8001221';
@@ -135,15 +146,19 @@ export default function Step5ItemList() {
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
 
-    // 2. グリッパー（GRD。機種別品番があれば優先、なければS規格別の汎用品番にフォールバック。SW・DM共通で1点のみ計上）
+    // 2. グリッパー（GRD。S規格別の汎用品番。SW・DM共通で1点のみ計上、hitch_item_noには左右されない）
     const grdInfo = GRD_ITEM_MAP[s_standard];
-    const grdItemNo = catalogEntry?.hitch_item_no ?? grdInfo?.item_no;
-    if (grdItemNo) {
-      const grd = await lookup(grdItemNo);
-      const grdFallback = grdInfo?.name ?? `グリッパー（${s_standard}対応${catalogEntry ? '' : ' / 機種別品番確認要'}）`;
-      built.push(makeItem(grdFallback, grd.price, price_type, grdItemNo, 1, grd.description));
+    if (grdInfo) {
+      const grd = await lookup(grdInfo.item_no);
+      built.push(makeItem(grdInfo.name, grd.price, price_type, grdInfo.item_no, 1, grd.description));
     } else {
       built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
+    }
+
+    // 3. マシンヒッチ/クイックカプラ（機種別品番。SWのみ計上、DMでは使用しない。GRD系品番はグリッパーのため除外）
+    if (mount_type === 'SW' && catalogEntry?.hitch_item_no && !GRD_TYPE_HITCH_ITEM_NOS.has(catalogEntry.hitch_item_no)) {
+      const hitch = await lookup(catalogEntry.hitch_item_no);
+      built.push(makeItem('マシンヒッチ/クイックカプラ', hitch.price, price_type, catalogEntry.hitch_item_no, 1, hitch.description));
     }
 
     // 4. DCシステム品目
