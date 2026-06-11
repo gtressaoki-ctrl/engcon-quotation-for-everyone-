@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { ExtraCost, QuoteItem } from '@/types/quote';
 
-// コントロール系・消耗品はパレット不要（チルトローテータ本体やマシンヒッチに同梱されるため）。
-// 物理機器（チルトローテータ・マシンヒッチ・グリッパー・クイックカプラ・アタッチメント）を各1パレット計上
+// コントロール系・消耗品はパレット不要（チルトローテータ本体やグリッパーに同梱されるため）。
+// 物理機器（チルトローテータ・グリッパー・アタッチメント）を各1パレット計上
 // 表示名がマスタの英語表記（説明文）になる場合があるため、品番ベースで判定する
 const NON_PALLET_ITEM_NOS = new Set([
   '8001080', // CAT DC2/MIG2セット（NG 301-310）
@@ -71,7 +71,7 @@ export default function Step8Costs() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-700">パレット数（自動計算）</p>
-            <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・マシンヒッチ・グリッパー・クイックカプラ・アタッチメントを各1パレットでカウント</p>
+            <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・グリッパー・アタッチメントを各1パレットでカウント</p>
           </div>
           <span className="text-2xl font-bold text-gray-800">{pallet_count} パレット</span>
         </div>
