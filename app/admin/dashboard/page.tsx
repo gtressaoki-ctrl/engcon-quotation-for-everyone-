@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useWizardStore } from '@/lib/wizardStore';
 import type { QuoteRecord, QuoteItem } from '@/types/quote';
 
 const CLIENT_TYPE_LABELS: Record<string, string> = {
@@ -11,6 +12,7 @@ const CLIENT_TYPE_LABELS: Record<string, string> = {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const loadQuote = useWizardStore((s) => s.loadQuote);
   const [quotes, setQuotes] = useState<QuoteRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -156,6 +158,12 @@ export default function AdminDashboard() {
     }
   }
 
+  function reviseQuote() {
+    if (!detail) return;
+    loadQuote(detail.quote, detail.items);
+    router.push('/wizard');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -247,7 +255,12 @@ export default function AdminDashboard() {
               <tbody>
                 {quotes.map((q) => (
                   <tr key={q.id} onClick={() => openDetail(q.id)} className="border-t border-gray-50 hover:bg-gray-50 cursor-pointer">
-                    <td className="px-4 py-3 font-mono">{q.quote_number}</td>
+                    <td className="px-4 py-3 font-mono">
+                      {q.quote_number}
+                      {q.revision_of_quote_number && (
+                        <div className="text-xs text-gray-400 font-sans">← {q.revision_of_quote_number} の改訂</div>
+                      )}
+                    </td>
                     <td className="px-4 py-3">{q.created_at ? new Date(q.created_at).toLocaleDateString('ja-JP') : ''}</td>
                     <td className="px-4 py-3">{q.creator_company}　{q.creator_name}</td>
                     <td className="px-4 py-3">{q.client_name}</td>
@@ -272,8 +285,18 @@ export default function AdminDashboard() {
             ) : detail && (
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-bold text-gray-800">見積番号 {detail.quote.quote_number}</h2>
-                  <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">見積番号 {detail.quote.quote_number}</h2>
+                    {detail.quote.revision_of_quote_number && (
+                      <p className="text-xs text-gray-400 mt-0.5">元見積：{detail.quote.revision_of_quote_number}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={reviseQuote} className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded">
+                      この見積を改訂する
+                    </button>
+                    <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+                  </div>
                 </div>
 
                 <DetailSection title="作成者情報">
