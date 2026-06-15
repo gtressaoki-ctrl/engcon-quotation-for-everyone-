@@ -47,7 +47,7 @@ const CAT_DC2_SET_NG_301_310 = '8001080';
 const CAT_DC2_SET_GC_313_PLUS = '8001221';
 const CAT_DC2_QSC = '8002201';      // サンドイッチ用 QSC
 const CAT_QSAFE = '8000271';        // ダイレクトマウント用 Qsafe
-const CAT_DC3_SET = '8001992';      // -07シリーズ DC3
+const CAT_DC3_QSC = '8001992';      // -07シリーズ DC3 サンドイッチ用 QSC
 
 // CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
 const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
@@ -170,8 +170,13 @@ export default function Step5ItemList() {
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
-        const dc3 = await lk(CAT_DC3_SET);
-        built.push(makeItem('DC3コントロールシステム', dc3.price, price_type, CAT_DC3_SET, 1, dc3.description));
+        if (mount_type === 'SW') {
+          const qsc = await lk(CAT_DC3_QSC);
+          built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
+        } else {
+          const qs = await lk(CAT_QSAFE);
+          built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
+        }
         const hose = await lk('540190');
         built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
         noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
