@@ -170,9 +170,11 @@ export default function Step5ItemList() {
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
+        const harness = await lk(CAT_DC3_QSC);
+        built.push(makeItem('DC3コントロールシステム', harness.price, price_type, CAT_DC3_QSC, 1, harness.description));
         if (mount_type === 'SW') {
-          const qsc = await lk(CAT_DC3_QSC);
-          built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
+          const qlm = await lk(CAT_QSAFE);
+          built.push(makeItem('QSCシステム', qlm.price, price_type, CAT_QSAFE, 1, qlm.description));
         } else {
           const qs = await lk(CAT_QSAFE);
           built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
