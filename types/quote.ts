@@ -69,6 +69,9 @@ export interface WizardState {
   note: string;
 
   price_type: PriceType;
+
+  revision_of?: number;
+  revision_of_quote_number?: string;
 }
 
 export interface QuoteRecord {
@@ -110,4 +113,7 @@ export interface QuoteRecord {
   total: number;
   pdf_path?: string;
   price_type: PriceType;
+
+  revision_of?: number;
+  revision_of_quote_number?: string;
 }
