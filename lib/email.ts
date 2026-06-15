@@ -8,6 +8,7 @@ export async function sendDealerQuoteNotification(params: {
   quoteNumber: string;
   creatorCompany: string;
   creatorName: string;
+  creatorEmail?: string;
   clientName: string;
   total: number;
 }) {
@@ -18,8 +19,8 @@ export async function sendDealerQuoteNotification(params: {
   }
 
   const resend = new Resend(apiKey);
-  const { quoteNumber, creatorCompany, creatorName, clientName, total } = params;
-  const dealerEmail = findDealerEmail(creatorCompany, creatorName);
+  const { quoteNumber, creatorCompany, creatorName, creatorEmail, clientName, total } = params;
+  const dealerEmail = findDealerEmail(creatorCompany, creatorName) || creatorEmail?.trim() || undefined;
 
   await resend.emails.send({
     from: FROM,

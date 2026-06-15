@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { getPriceType } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
+import { findDealerEmail } from '@/lib/dealerContacts';
 
 export default function Step1Creator() {
-  const { creator_type, creator_company, creator_name, client_type, client_name, update, nextStep } =
+  const { creator_type, creator_company, creator_name, creator_email, client_type, client_name, update, nextStep } =
     useWizardStore();
   const [adminSession, setAdminSession] = useState<boolean | null>(null);
+  const needsEmailInput = creator_type === 'dealer' && !findDealerEmail(creator_company, creator_name);
 
   useEffect(() => {
     if (creator_type === 'gtres') {
@@ -27,6 +29,10 @@ export default function Step1Creator() {
     }
     if (creator_type === 'dealer' && !creator_company.trim()) {
       alert('会社名を入力してください');
+      return;
+    }
+    if (needsEmailInput && !creator_email.trim()) {
+      alert('見積保存時の通知を受け取るメールアドレスを入力してください');
       return;
     }
     if (creator_type === 'gtres' && !adminSession) {
@@ -113,6 +119,22 @@ export default function Step1Creator() {
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+
+      {needsEmailInput && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            メールアドレス <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-gray-500 mb-1">見積保存時の確認メールをこちらにお送りします。</p>
+          <input
+            type="email"
+            value={creator_email}
+            onChange={(e) => update({ creator_email: e.target.value })}
+            placeholder="例：example@company.co.jp"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
 
       <div className="flex justify-end">
         <button
