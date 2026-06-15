@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateQuoteNumber } from '@/lib/quoteNumber';
+import { generateQuoteNumber, generateRevisionQuoteNumber } from '@/lib/quoteNumber';
 import { createServiceClient } from '@/lib/supabase';
 import { sendDealerQuoteNotification } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const quoteNumber = await generateQuoteNumber();
     const supabase = createServiceClient();
+
+    let quoteNumber: string;
+    let revisionOfQuoteNumber: string | null = null;
+    if (body.revision_of) {
+      const { data: original } = await supabase
+        .from('quotes')
+        .select('quote_number')
+        .eq('id', body.revision_of)
+        .single();
+      revisionOfQuoteNumber = original?.quote_number ?? null;
+      quoteNumber = revisionOfQuoteNumber
+        ? await generateRevisionQuoteNumber(revisionOfQuoteNumber)
+        : await generateQuoteNumber();
+    } else {
+      quoteNumber = await generateQuoteNumber();
+    }
 
     const { data: quoteRecord } = await supabase
       .from('quotes')
       .insert({
         quote_number:     quoteNumber,
+        revision_of:      body.revision_of || null,
+        revision_of_quote_number: revisionOfQuoteNumber,
         creator_type:     body.creator_type,
         creator_company:  body.creator_company,
         creator_name:     body.creator_name,

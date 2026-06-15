@@ -40,6 +40,12 @@ export default function Step10Confirm() {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-700">STEP 10：確認・出力</h2>
 
+      {state.revision_of_quote_number && !quoteNumber && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+          見積番号 <strong>{state.revision_of_quote_number}</strong> の改訂として保存されます。
+        </div>
+      )}
+
       {quoteNumber && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
           見積番号 <strong>{quoteNumber}</strong> で保存しました。
