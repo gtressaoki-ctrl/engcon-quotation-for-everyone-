@@ -18,6 +18,9 @@ const ITEM_NO_TO_EC: Record<string, string> = {
   '1067465': 'EC209B',
   '1067444': 'EC214S',
   '1067394': 'EC226S',
+  // S40 直付け品番（DM）からのデフォルトECモデル逆引き
+  '1080310': 'EC204B',  // 3〜4.5t級
+  '1084265': 'EC206B',  // 5t級
 };
 
 export default function Step3Machine() {

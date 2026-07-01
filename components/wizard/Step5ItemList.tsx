@@ -24,6 +24,13 @@ const EC_ITEM_MAP: Record<string, string> = {
   EC226S: '1067394',
 };
 
+// S40 ダイレクトマウント：見積主が選択したECモデル別の直付けチルトローテータ品番
+// （STEP4のECモデル選択で204/206を切替可能にするため）
+const S40_DM_EC_ITEM_MAP: Record<string, string> = {
+  EC204B: '1080310',  // EC204BS-QSM40-Direct connect-DC2-H65
+  EC206B: '1084265',  // EC206BS-QSM40Q-Direct connect-DC2-H65
+};
+
 const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
   S40: { item_no: '1065797', name: 'グリッパー GRD40' },
   S45: { item_no: '1079540', name: 'グリッパー GRD45' },
@@ -141,7 +148,12 @@ export default function Step5ItemList() {
     const catDc3TiltOverride = (machine_maker === 'CAT' && dc_system === 'DC3')
       ? CAT_DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
       : undefined;
+    // S40 DMは見積主が選択したECモデル（EC204B/EC206B）で直付け品番を切替
+    const s40DmOverride = (mount_type === 'DM' && s_standard === 'S40')
+      ? S40_DM_EC_ITEM_MAP[ec_model]
+      : undefined;
     const ecItemNo = catDc3TiltOverride
+      ?? s40DmOverride
       ?? ((mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model]);
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
