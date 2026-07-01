@@ -26,6 +26,7 @@ export interface WizardState {
   creator_type: CreatorType;
   creator_company: string;
   creator_name: string;
+  creator_email: string;
 
   client_type: ClientType;
   client_name: string;

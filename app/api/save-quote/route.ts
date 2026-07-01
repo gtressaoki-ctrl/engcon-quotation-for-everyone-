@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
           quoteNumber,
           creatorCompany: body.creator_company,
           creatorName: body.creator_name,
+          creatorEmail: body.creator_email,
           clientName: body.client_name,
           total: body.total,
         });

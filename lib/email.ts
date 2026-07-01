@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { findDealerEmail } from './dealerContacts';
 
 const NOTIFY_TO = 'g.tres.saoki@gmail.com';
 const FROM = 'engcon見積システム <onboarding@resend.dev>';
@@ -7,6 +8,7 @@ export async function sendDealerQuoteNotification(params: {
   quoteNumber: string;
   creatorCompany: string;
   creatorName: string;
+  creatorEmail?: string;
   clientName: string;
   total: number;
 }) {
@@ -17,11 +19,13 @@ export async function sendDealerQuoteNotification(params: {
   }
 
   const resend = new Resend(apiKey);
-  const { quoteNumber, creatorCompany, creatorName, clientName, total } = params;
+  const { quoteNumber, creatorCompany, creatorName, creatorEmail, clientName, total } = params;
+  const dealerEmail = findDealerEmail(creatorCompany, creatorName) || creatorEmail?.trim() || undefined;
 
   await resend.emails.send({
     from: FROM,
     to: NOTIFY_TO,
+    cc: dealerEmail,
     subject: `【見積作成通知】${creatorCompany} - ${quoteNumber}`,
     text: [
       'ディーラーによる見積が作成されました。',

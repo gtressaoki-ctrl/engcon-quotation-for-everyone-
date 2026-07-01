@@ -16,6 +16,7 @@ const initialState: WizardState = {
   creator_type: 'dealer',
   creator_company: '',
   creator_name: '',
+  creator_email: '',
 
   client_type: 'dealer',
   client_name: '',

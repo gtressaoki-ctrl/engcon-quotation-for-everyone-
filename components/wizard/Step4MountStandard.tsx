@@ -67,6 +67,11 @@ export default function Step4MountStandard() {
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
           {ecOptions.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
+        {s_standard === 'S40' && mount_type === 'DM' && (
+          <p className="text-xs text-gray-500 mt-1">
+            ダイレクトマウントのチルトローテータ品番は選択したECモデル（EC204B / EC206B）で切り替わります。
+          </p>
+        )}
       </div>
 
       <div>
