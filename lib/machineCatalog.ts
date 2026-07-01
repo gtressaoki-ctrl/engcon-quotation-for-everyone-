@@ -46,6 +46,8 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'KOMATSU', model: 'PC138US-11', s_standard: 'S60', mount: 'DM', dc: 'DC2', ec_item_no: '1082863', hitch_item_no: '1071055' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
+  { maker: 'KOMATSU', model: 'PC228US-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
+  { maker: 'KOMATSU', model: 'PC228US-11', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
   { maker: 'HITACHI', model: 'ZX35U-5B', s_standard: 'S40', mount: 'SW', dc: 'DC2', ec_item_no: '1080112', hitch_item_no: '1082036' },
   { maker: 'HITACHI', model: 'ZX35U-5B', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1080310', hitch_item_no: '1065797' },
   { maker: 'HITACHI', model: 'ZX55UR-7', s_standard: 'S40', mount: 'SW', dc: 'DC2', ec_item_no: '1069528', hitch_item_no: '1079607' },
