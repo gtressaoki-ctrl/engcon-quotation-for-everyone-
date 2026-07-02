@@ -24,11 +24,17 @@ const EC_ITEM_MAP: Record<string, string> = {
   EC226S: '1067394',
 };
 
-// S40 ダイレクトマウント：見積主が選択したECモデル別の直付けチルトローテータ品番
-// （STEP4のECモデル選択で204/206を切替可能にするため）
-const S40_DM_EC_ITEM_MAP: Record<string, string> = {
+// ダイレクトマウント用：ECモデル別の直付け（Direct connect）チルトローテータ品番
+// SW用のEC_ITEM_MAP（サンドイッチ品番）と異なり、DM時はこちらを使う。
+// STEP4のECモデル選択で品番が切り替わる。
+const DM_DIRECT_EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080310',  // EC204BS-QSM40-Direct connect-DC2-H65
   EC206B: '1084265',  // EC206BS-QSM40Q-Direct connect-DC2-H65
+  EC209B: '1068483',  // EC209BS-QSM45Q-Direct connect-DC2-24V-H48
+  EC214S: '1073483',  // EC214S-QSM60Q-Direct connect-DC2-24V-H28
+  EC219:  '1069569',  // EC219S-QSM60Q-Direct connect-DC2-H28
+  EC226S: '1080789',  // EC226S-QSM70Q-Direct connect-DC2-H31
+  EC233:  '1070004',  // EC233S-QSM70Q-Direct connect-DC2-H31
 };
 
 const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
@@ -148,13 +154,23 @@ export default function Step5ItemList() {
     const catDc3TiltOverride = (machine_maker === 'CAT' && dc_system === 'DC3')
       ? CAT_DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
       : undefined;
-    // S40 DMは見積主が選択したECモデル（EC204B/EC206B）で直付け品番を切替
-    const s40DmOverride = (mount_type === 'DM' && s_standard === 'S40')
-      ? S40_DM_EC_ITEM_MAP[ec_model]
-      : undefined;
-    const ecItemNo = catDc3TiltOverride
-      ?? s40DmOverride
-      ?? ((mount_type === 'DM' && catalogEntry?.ec_item_no) ? catalogEntry.ec_item_no : EC_ITEM_MAP[ec_model]);
+    // DM時のECモデル別 直付け（Direct connect）品番
+    const dmDirect = DM_DIRECT_EC_ITEM_MAP[ec_model];
+    let ecItemNo: string | undefined;
+    if (catDc3TiltOverride) {
+      ecItemNo = catDc3TiltOverride;
+    } else if (mount_type === 'DM') {
+      if (s_standard === 'S40') {
+        // S40は見積主のECモデル選択（EC204B/EC206B）で品番を切替（マップ優先）
+        ecItemNo = dmDirect ?? catalogEntry?.ec_item_no ?? EC_ITEM_MAP[ec_model];
+      } else {
+        // 他サイズはcatalogの機種別Direct品番を優先、無ければECモデル別Direct品番
+        ecItemNo = catalogEntry?.ec_item_no ?? dmDirect ?? EC_ITEM_MAP[ec_model];
+      }
+    } else {
+      // SW（サンドイッチ）
+      ecItemNo = EC_ITEM_MAP[ec_model];
+    }
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
 

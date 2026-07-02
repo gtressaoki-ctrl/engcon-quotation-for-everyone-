@@ -67,7 +67,7 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'HITACHI', model: 'ZX135US-7', s_standard: 'S60', mount: 'SW', dc: 'DC2', ec_item_no: '1067444', hitch_item_no: '1078990' },
   { maker: 'HITACHI', model: 'ZX135US-7', s_standard: 'S60', mount: 'DM', dc: 'DC2', ec_item_no: '1073483', hitch_item_no: '1071055' },
   { maker: 'HITACHI', model: 'ZX200-6', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1081220' },
-  { maker: 'HITACHI', model: 'ZX200-6', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1074818' },
+  { maker: 'HITACHI', model: 'ZX200-6', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: '1080789', hitch_item_no: '1074818' },
   { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', mount: 'SW', dc: 'DC2', ec_item_no: '1068197', hitch_item_no: '1079651' },
   { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1057275' },
   { maker: 'SUMITOMO', model: 'SH135X-7', s_standard: 'S60', mount: 'SW', dc: 'DC2', ec_item_no: '1067444', hitch_item_no: '1077618' },
