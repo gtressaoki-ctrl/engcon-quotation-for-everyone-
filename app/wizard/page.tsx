@@ -12,20 +12,33 @@ import Step7ICT from '@/components/wizard/Step7ICT';
 import Step8Costs from '@/components/wizard/Step8Costs';
 import Step9Delivery from '@/components/wizard/Step9Delivery';
 import Step10Confirm from '@/components/wizard/Step10Confirm';
+import StepAttachStandard from '@/components/wizard/StepAttachStandard';
 
-const STEP_LABELS = [
+// チルトローテータ一式：従来の全ステップ
+const TILT_LABELS = [
   '作成者情報', '見積先情報', 'ベースマシン', '取付方式・S規格',
   '品目一覧', 'アタッチメント選択', 'アタッチメント詳細', 'ICT情報', '費用・物流', '納期・場所', '確認・出力',
 ];
-
-const STEPS = [
+const TILT_STEPS = [
   Step1Creator, Step2Client, Step3Machine, Step4MountStandard,
   Step5ItemList, Step6Attachments, Step6bVariants, Step7ICT, Step8Costs, Step9Delivery, Step10Confirm,
 ];
 
+// アタッチメントのみ：マシン・取付方式・チルトローテータ品目・ICTを省略
+const ATTACH_LABELS = [
+  '作成者情報', '見積先情報', 'S規格', 'アタッチメント選択', 'アタッチメント詳細', '費用・物流', '納期・場所', '確認・出力',
+];
+const ATTACH_STEPS = [
+  Step1Creator, Step2Client, StepAttachStandard, Step6Attachments, Step6bVariants, Step8Costs, Step9Delivery, Step10Confirm,
+];
+
 export default function WizardPage() {
-  const { currentStep, setStep } = useWizardStore();
-  const StepComponent = STEPS[currentStep - 1];
+  const { quote_mode, currentStep, setStep } = useWizardStore();
+  const isAttach = quote_mode === 'attachment';
+  const STEPS = isAttach ? ATTACH_STEPS : TILT_STEPS;
+  const STEP_LABELS = isAttach ? ATTACH_LABELS : TILT_LABELS;
+  const activeStep = Math.min(currentStep, STEPS.length);
+  const StepComponent = STEPS[activeStep - 1];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -36,8 +49,8 @@ export default function WizardPage() {
           <div className="flex overflow-x-auto gap-1 pb-2">
             {STEP_LABELS.map((label, i) => {
               const step = i + 1;
-              const isDone = currentStep > step;
-              const isCurrent = currentStep === step;
+              const isDone = activeStep > step;
+              const isCurrent = activeStep === step;
               return (
                 <button
                   key={step}

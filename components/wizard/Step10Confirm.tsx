@@ -63,16 +63,23 @@ export default function Step10Confirm() {
         <Row label="見積先名" value={state.client_name} />
       </Section>
 
-      <Section title="ベースマシン">
-        <Row label="状態" value={state.machine_condition === 'new' ? '新車' : '中古車'} />
-        <Row label="メーカー" value={state.machine_maker} />
-        <Row label="機種名" value={state.machine_model} />
-        {state.machine_year && <Row label="製造年月" value={state.machine_year} />}
-        <Row label="取付方式" value={state.mount_type === 'SW' ? 'サンドイッチ（SW）' : 'ダイレクトマウント（DM）'} />
-        <Row label="S規格" value={state.s_standard} />
-        <Row label="ECモデル" value={state.ec_model} />
-        <Row label="DCシステム" value={state.dc_system} />
-      </Section>
+      {state.quote_mode === 'attachment' ? (
+        <Section title="アタッチメント見積">
+          <Row label="見積種別" value="アタッチメントのみ" />
+          <Row label="S規格" value={state.s_standard} />
+        </Section>
+      ) : (
+        <Section title="ベースマシン">
+          <Row label="状態" value={state.machine_condition === 'new' ? '新車' : '中古車'} />
+          <Row label="メーカー" value={state.machine_maker} />
+          <Row label="機種名" value={state.machine_model} />
+          {state.machine_year && <Row label="製造年月" value={state.machine_year} />}
+          <Row label="取付方式" value={state.mount_type === 'SW' ? 'サンドイッチ（SW）' : 'ダイレクトマウント（DM）'} />
+          <Row label="S規格" value={state.s_standard} />
+          <Row label="ECモデル" value={state.ec_model} />
+          <Row label="DCシステム" value={state.dc_system} />
+        </Section>
+      )}
 
       <Section title="品目一覧">
         <div className="overflow-x-auto">

@@ -1,3 +1,4 @@
+export type QuoteMode = 'tiltrotator' | 'attachment';
 export type CreatorType = 'gtres' | 'dealer';
 export type ClientType = 'dealer' | 'reseller' | 'enduser';
 export type MachineCondition = 'new' | 'used';
@@ -23,6 +24,8 @@ export interface ExtraCost {
 }
 
 export interface WizardState {
+  quote_mode: QuoteMode;
+
   creator_type: CreatorType;
   creator_company: string;
   creator_name: string;

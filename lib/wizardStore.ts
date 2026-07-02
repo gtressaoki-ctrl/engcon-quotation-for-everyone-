@@ -13,6 +13,8 @@ interface WizardStore extends WizardState {
 }
 
 const initialState: WizardState = {
+  quote_mode: 'tiltrotator',
+
   creator_type: 'dealer',
   creator_company: '',
   creator_name: '',

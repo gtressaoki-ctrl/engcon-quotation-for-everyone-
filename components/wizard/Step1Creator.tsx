@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { findDealerEmail } from '@/lib/dealerContacts';
 
 export default function Step1Creator() {
-  const { creator_type, creator_company, creator_name, creator_email, client_type, client_name, update, nextStep } =
+  const { quote_mode, creator_type, creator_company, creator_name, creator_email, client_type, client_name, update, nextStep } =
     useWizardStore();
   const [adminSession, setAdminSession] = useState<boolean | null>(null);
   const needsEmailInput = creator_type === 'dealer' && !findDealerEmail(creator_company, creator_name);
@@ -55,6 +55,27 @@ export default function Step1Creator() {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-700">STEP 1：作成者情報</h2>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">見積種別</label>
+        <div className="grid grid-cols-2 gap-3">
+          {([['tiltrotator', 'チルトローテータ一式'], ['attachment', 'アタッチメントのみ']] as const).map(([val, label]) => (
+            <label key={val}
+              className={`flex items-center gap-2 cursor-pointer border rounded-lg px-4 py-3 transition ${
+                quote_mode === val ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-300 hover:bg-gray-50'
+              }`}>
+              <input type="radio" value={val} checked={quote_mode === val}
+                onChange={() => update({ quote_mode: val })} className="w-4 h-4 text-blue-600" />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {quote_mode === 'attachment'
+            ? 'アタッチメントのみの見積です。ベースマシン・チルトローテータ本体の入力は省略されます。'
+            : 'チルトローテータ本体を含む一式の見積です。'}
+        </p>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">種別</label>
