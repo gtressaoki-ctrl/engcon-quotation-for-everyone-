@@ -16,6 +16,13 @@ export default function Home() {
           見積もりを作成する
         </Link>
 
+        <Link
+          href="/lookup"
+          className="block w-full mt-3 border border-blue-600 text-blue-700 hover:bg-blue-50 font-semibold py-4 px-8 rounded-xl text-lg transition"
+        >
+          品番から金額を確認する
+        </Link>
+
         <div className="mt-6">
           <Link href="/admin" className="text-sm text-gray-400 hover:text-gray-600">
             管理者ログイン
