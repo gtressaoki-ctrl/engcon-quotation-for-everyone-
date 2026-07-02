@@ -19,6 +19,7 @@ const initialState: WizardState = {
   creator_company: '',
   creator_name: '',
   creator_email: '',
+  creator_user_id: undefined,
 
   client_type: 'dealer',
   client_name: '',
@@ -80,6 +81,7 @@ export const useWizardStore = create<WizardStore>((set) => ({
     creator_type: quote.creator_type,
     creator_company: quote.creator_company,
     creator_name: quote.creator_name,
+    creator_user_id: quote.creator_user_id,
     client_type: quote.client_type,
     client_name: quote.client_name,
     machine_condition: quote.machine_condition,

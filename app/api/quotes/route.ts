@@ -19,12 +19,14 @@ export async function GET(req: NextRequest) {
   const creatorCompany = searchParams.get('creator_company');
   const creatorName = searchParams.get('creator_name');
   const clientType = searchParams.get('client_type');
+  const creatorUserId = searchParams.get('creator_user_id');
 
   if (since) query = query.gte('created_at', since);
   if (until) query = query.lte('created_at', until);
   if (creatorCompany) query = query.ilike('creator_company', `%${creatorCompany}%`);
   if (creatorName) query = query.ilike('creator_name', `%${creatorName}%`);
   if (clientType) query = query.eq('client_type', clientType);
+  if (creatorUserId) query = query.eq('creator_user_id', creatorUserId);
 
   const { data, count, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

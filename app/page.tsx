@@ -26,7 +26,10 @@ export default function Home() {
           品番から金額を確認する
         </Link>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-2">
+          <Link href="/dealer/login" className="text-sm text-black hover:underline">
+            ディーラーログイン（自分の見積を見返す）
+          </Link>
           <Link href="/admin" className="text-sm text-gray-400 hover:text-gray-600">
             管理者ログイン
           </Link>

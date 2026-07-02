@@ -41,7 +41,9 @@ export default function AdminDashboard() {
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) router.push('/admin');
+    if (!session) { router.push('/admin'); return; }
+    const meta = session.user?.user_metadata as { role?: string } | undefined;
+    if (meta?.role === 'dealer') router.push('/dealer/quotes');
   }
 
   async function fetchQuotes() {
