@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { calculateSalesPrice } from '@/lib/pricing';
-import type { PriceType } from '@/types/quote';
 
 interface PriceRow {
   item_no: string;
@@ -12,20 +10,11 @@ interface PriceRow {
   price_jpy: number | null;
 }
 
-const PRICE_TYPE_LABELS: { value: PriceType; label: string }[] = [
-  { value: 'dealer', label: 'ディーラー' },
-  { value: 'reseller', label: '未登録販売店' },
-  { value: 'enduser', label: 'エンドユーザー' },
-  { value: 'rsm', label: 'RSM' },
-];
-
 export default function PriceLookupPage() {
   const [query, setQuery] = useState('');
   const [rows, setRows] = useState<PriceRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [priceType, setPriceType] = useState<PriceType>('dealer');
-  const [resellerRate, setResellerRate] = useState<number>(85);
   const [inventory, setInventory] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -51,11 +40,6 @@ export default function PriceLookupPage() {
     if (e.key === 'Enter') search();
   }
 
-  const salesLabel = useMemo(
-    () => PRICE_TYPE_LABELS.find((p) => p.value === priceType)?.label ?? '',
-    [priceType]
-  );
-
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -64,48 +48,23 @@ export default function PriceLookupPage() {
           <Link href="/" className="text-sm text-blue-600 hover:underline">← トップへ</Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">品番 または 品名</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="例：1080310 / Direct connect"
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={search}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition"
-              >
-                検索
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-end gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">価格区分（販売価の算出用）</label>
-              <select
-                value={priceType}
-                onChange={(e) => setPriceType(e.target.value as PriceType)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {PRICE_TYPE_LABELS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
-            </div>
-            {priceType === 'reseller' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">掛け率（%）</label>
-                <input
-                  type="number" min={1} max={100} value={resellerRate}
-                  onChange={(e) => setResellerRate(parseInt(e.target.value) || 85)}
-                  className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">品番 または 品名</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="例：1080310 / Direct connect"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={search}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition"
+            >
+              検索
+            </button>
           </div>
         </div>
 
@@ -123,16 +82,12 @@ export default function PriceLookupPage() {
                     <th className="text-left px-4 py-3">品名</th>
                     <th className="text-center px-4 py-3 whitespace-nowrap">在庫</th>
                     <th className="text-right px-4 py-3 whitespace-nowrap">定価</th>
-                    <th className="text-right px-4 py-3 whitespace-nowrap">販売価（{salesLabel}）</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((r) => {
                     const stock = inventory[r.item_no];
                     const hasStock = stock != null;
-                    const sales = r.price_jpy != null
-                      ? calculateSalesPrice(r.price_jpy, priceType, resellerRate)
-                      : null;
                     return (
                       <tr key={r.item_no} className="border-t border-gray-100">
                         <td className="px-4 py-3 font-mono text-xs">{r.item_no}</td>
@@ -146,9 +101,6 @@ export default function PriceLookupPage() {
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           {r.price_jpy != null ? `¥${r.price_jpy.toLocaleString()}` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-blue-700">
-                          {sales != null ? `¥${sales.toLocaleString()}` : '—'}
                         </td>
                       </tr>
                     );
