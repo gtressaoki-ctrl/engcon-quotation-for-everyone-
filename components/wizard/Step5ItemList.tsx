@@ -317,7 +317,8 @@ export default function Step5ItemList() {
       {loading ? (
         <p className="text-gray-500">標準構成を読み込み中...</p>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-100">
@@ -389,6 +390,57 @@ export default function Step5ItemList() {
           </table>
           <button onClick={addItem} className="mt-2 text-sm text-black hover:underline">+ 品目を追加</button>
         </div>
+
+        {/* モバイル：品目カード */}
+        <div className="md:hidden space-y-3">
+          {items.map((item, i) => (
+            <div key={i} className={`border rounded-lg p-3 space-y-2 ${item.list_price == null && !item.is_custom ? 'bg-yellow-50 border-yellow-200' : 'border-gray-200'}`}>
+              <div className="flex justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  {item.is_custom ? (
+                    <input type="text" value={item.name_ja} placeholder="品名"
+                      onChange={(e) => updateItem(i, 'name_ja', e.target.value)}
+                      className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black" />
+                  ) : (
+                    <p className="text-sm font-medium break-words">{item.name_ja}</p>
+                  )}
+                  <p className="font-mono text-xs text-gray-500 mt-0.5">{item.item_no ?? '—'}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <InventoryBadge itemNo={item.item_no} inventory={inventory} />
+                  <button onClick={() => removeItem(i)} className="text-red-500 text-xs">✕ 削除</button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-gray-500">
+                  定価 {item.list_price != null ? `¥${item.list_price.toLocaleString()}` : <span className="text-yellow-600">要確認</span>}
+                </span>
+                <Stepper value={item.qty} onChange={(v) => updateItem(i, 'qty', v)} />
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <label className="text-gray-500">販売価</label>
+                <div className="flex items-center gap-1">
+                  <span>¥</span>
+                  <input type="number" min={0} value={item.unit_price ?? ''} placeholder="—"
+                    onChange={(e) => updateItem(i, 'unit_price', parseInt(e.target.value) || 0)}
+                    className="w-28 text-right border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-black tabular-nums" />
+                </div>
+              </div>
+              <div className="flex justify-between items-center border-t border-gray-100 pt-2">
+                <span className="text-sm text-gray-500">金額</span>
+                <span className="font-semibold tabular-nums">{item.amount != null ? `¥${item.amount.toLocaleString()}` : '—'}</span>
+              </div>
+              {price_type === 'rsm' && item.list_price != null && (
+                <div className="flex justify-between text-xs text-gray-500 tabular-nums">
+                  <span>御客様販売価 ¥{calculateRsmCustomerPrice(item.list_price).toLocaleString()}</span>
+                  <span>金額 ¥{(calculateRsmCustomerPrice(item.list_price) * item.qty).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          ))}
+          <button onClick={addItem} className="text-sm text-black hover:underline">+ 品目を追加</button>
+        </div>
+        </>
       )}
 
       <div className="flex justify-between pt-4">

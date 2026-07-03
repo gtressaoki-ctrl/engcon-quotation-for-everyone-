@@ -81,7 +81,7 @@ export default function Step10Confirm() {
       )}
 
       <Section title="品目一覧">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="bg-gray-50">
@@ -119,6 +119,32 @@ export default function Step10Confirm() {
             })}
           </tbody>
         </table>
+        </div>
+
+        {/* モバイル：品目カード */}
+        <div className="md:hidden space-y-2">
+          {state.items.map((item, i) => {
+            const resaleUnit = item.list_price != null ? calculateRsmCustomerPrice(item.list_price) : null;
+            return (
+              <div key={i} className="border border-gray-200 rounded-lg p-3">
+                <p className="text-sm font-medium break-words">{item.name_ja}</p>
+                <div className="mt-1 flex justify-between text-xs text-gray-500 tabular-nums">
+                  <span>定価 {item.list_price != null ? `¥${item.list_price.toLocaleString()}` : '—'}</span>
+                  <span>数量 {item.qty}</span>
+                </div>
+                <div className="mt-1 flex justify-between items-center border-t border-gray-100 pt-1">
+                  <span className="text-xs text-gray-500">販売価 {item.unit_price != null ? `¥${item.unit_price.toLocaleString()}` : '—'}</span>
+                  <span className="font-semibold tabular-nums">{item.amount != null ? `¥${item.amount.toLocaleString()}` : '—'}</span>
+                </div>
+                {state.price_type === 'rsm' && resaleUnit != null && (
+                  <div className="mt-1 flex justify-between text-xs text-gray-500 tabular-nums">
+                    <span>御客様販売価 ¥{resaleUnit.toLocaleString()}</span>
+                    <span>金額 ¥{(resaleUnit * item.qty).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Section>
 

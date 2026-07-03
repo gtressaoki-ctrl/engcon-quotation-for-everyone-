@@ -241,7 +241,8 @@ export default function AdminDashboard() {
           {loading ? (
             <div className="p-8 text-center text-gray-400">読み込み中...</div>
           ) : (
-            <table className="w-full text-sm">
+            <>
+            <table className="w-full text-sm hidden md:table">
               <thead>
                 <tr className="bg-gray-50">
                   <th className="text-left px-4 py-3">見積番号</th>
@@ -273,6 +274,29 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+
+            {/* モバイル：見積カード */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {quotes.map((q) => (
+                <button key={q.id} onClick={() => openDetail(q.id)} className="w-full text-left p-4 hover:bg-gray-50">
+                  <div className="flex justify-between items-start gap-2">
+                    <span className="font-mono text-sm">{q.quote_number}</span>
+                    <span className="font-semibold tabular-nums shrink-0">¥{q.total.toLocaleString()}</span>
+                  </div>
+                  {q.revision_of_quote_number && (
+                    <div className="text-xs text-gray-400">← {q.revision_of_quote_number} の改訂</div>
+                  )}
+                  <div className="text-sm text-gray-800 mt-1">{q.client_name}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {q.created_at ? new Date(q.created_at).toLocaleDateString('ja-JP') : ''}　{q.creator_company} {q.creator_name}
+                  </div>
+                </button>
+              ))}
+              {quotes.length === 0 && (
+                <div className="px-4 py-8 text-center text-gray-400">データがありません</div>
+              )}
+            </div>
+            </>
           )}
         </div>
       </div>
@@ -324,7 +348,7 @@ export default function AdminDashboard() {
                 </DetailSection>
 
                 <DetailSection title="品目一覧">
-                  <div className="overflow-x-auto">
+                  <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm min-w-[640px]">
                     <thead>
                       <tr className="bg-gray-50">
@@ -349,6 +373,24 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
+
+                  {/* モバイル：品目カード */}
+                  <div className="md:hidden space-y-2">
+                    {detail.items.map((item, i) => (
+                      <div key={i} className="border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm font-medium break-words">{item.name_ja}</p>
+                        <p className="font-mono text-xs text-gray-500">{item.item_no || '—'}</p>
+                        <div className="mt-1 flex justify-between text-xs text-gray-500 tabular-nums">
+                          <span>定価 {item.list_price != null ? `¥${item.list_price.toLocaleString()}` : '—'}</span>
+                          <span>数量 {item.qty}</span>
+                        </div>
+                        <div className="mt-1 flex justify-between items-center border-t border-gray-100 pt-1">
+                          <span className="text-xs text-gray-500">販売価 {item.unit_price != null ? `¥${item.unit_price.toLocaleString()}` : '—'}</span>
+                          <span className="font-semibold tabular-nums">{item.amount != null ? `¥${item.amount.toLocaleString()}` : '—'}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </DetailSection>
 
