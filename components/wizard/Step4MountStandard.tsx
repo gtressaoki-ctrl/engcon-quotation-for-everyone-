@@ -36,7 +36,6 @@ export default function Step4MountStandard() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 4：取付方式・S規格</h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">取付方式</label>

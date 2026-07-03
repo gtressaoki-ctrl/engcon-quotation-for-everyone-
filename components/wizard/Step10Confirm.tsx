@@ -38,7 +38,6 @@ export default function Step10Confirm() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 10：確認・出力</h2>
 
       {state.revision_of_quote_number && !quoteNumber && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
@@ -148,11 +147,11 @@ export default function Step10Confirm() {
         </Section>
       )}
 
-      <div className="flex justify-between pt-4">
-        <button onClick={state.prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
+      <div className="flex justify-between gap-3 pt-4">
+        <button onClick={state.prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition whitespace-nowrap shrink-0">← 戻る</button>
         <button onClick={handleSave} disabled={loading || !!quoteNumber}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition">
-          {loading ? '保存中...' : quoteNumber ? '保存済み' : '上記情報で見積保存する'}
+          className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition whitespace-nowrap">
+          {loading ? '保存中...' : quoteNumber ? '保存済み' : '見積を保存'}
         </button>
       </div>
     </div>

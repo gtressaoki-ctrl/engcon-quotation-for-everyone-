@@ -10,7 +10,6 @@ export default function StepAttachStandard() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 3：S規格（カプラサイズ）</h2>
       <p className="text-sm text-gray-500">
         アタッチメントの品番はS規格（クイックカプラのサイズ）ごとに異なります。取り付けるチルトローテータのS規格を選択してください。
       </p>

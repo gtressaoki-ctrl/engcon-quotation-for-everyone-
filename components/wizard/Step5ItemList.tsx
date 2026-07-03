@@ -320,7 +320,6 @@ export default function Step5ItemList() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 5：品目一覧</h2>
 
       {loading ? (
         <p className="text-gray-500">標準構成を読み込み中...</p>

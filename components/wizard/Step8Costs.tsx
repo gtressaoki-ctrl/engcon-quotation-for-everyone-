@@ -65,15 +65,14 @@ export default function Step8Costs() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 9：費用・物流</h2>
 
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-sm font-medium text-gray-700">パレット数（自動計算）</p>
             <p className="text-xs text-gray-500 mt-0.5">チルトローテータ・グリッパー・マシンヒッチ/クイックカプラ・アタッチメントを各1パレットでカウント</p>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{pallet_count} パレット</span>
+          <span className="text-2xl font-bold text-gray-800 whitespace-nowrap shrink-0">{pallet_count} パレット</span>
         </div>
         <div className="mt-2 text-sm text-gray-600">国内運賃：{fmt(freight)}</div>
       </div>

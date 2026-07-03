@@ -98,7 +98,6 @@ export default function Step3Machine() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 3：ベースマシン情報</h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">車両状態</label>

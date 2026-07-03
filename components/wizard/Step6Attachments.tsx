@@ -42,7 +42,6 @@ export default function Step6Attachments() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 6：追加アタッチメント選択</h2>
       <p className="text-xs text-gray-500">次のステップでサイズ・バリアントを選択します。</p>
 
       <div>

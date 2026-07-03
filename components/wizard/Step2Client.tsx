@@ -43,7 +43,6 @@ export default function Step2Client() {
   if (creator_type === 'dealer') {
     return (
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-gray-700">STEP 2：見積先情報</h2>
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
           <p className="font-medium mb-2">見積先は自動設定されます</p>
           <p>
@@ -58,7 +57,6 @@ export default function Step2Client() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 2：見積先情報</h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">見積先種別</label>

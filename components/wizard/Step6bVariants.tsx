@@ -126,7 +126,6 @@ export default function Step6bVariants() {
   if (selectedCategories.length === 0) {
     return (
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-gray-700">STEP 7：アタッチメント詳細選択</h2>
         <p className="text-gray-500 text-sm">アタッチメントが選択されていません。</p>
         <div className="flex justify-between pt-4">
           <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
@@ -139,7 +138,6 @@ export default function Step6bVariants() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 7：アタッチメント詳細選択</h2>
       <p className="text-xs text-gray-500">S規格：<strong>{s_standard}</strong> に対応する品番を選択してください。</p>
 
       {loading ? (

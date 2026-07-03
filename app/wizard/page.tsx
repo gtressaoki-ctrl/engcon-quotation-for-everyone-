@@ -72,6 +72,9 @@ export default function WizardPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
+          <h2 className="text-xl font-semibold text-gray-700 mb-6">
+            STEP {activeStep}／{STEPS.length}：{STEP_LABELS[activeStep - 1]}
+          </h2>
           <StepComponent />
         </div>
       </div>

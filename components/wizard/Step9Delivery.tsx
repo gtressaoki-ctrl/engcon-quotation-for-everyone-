@@ -7,7 +7,6 @@ export default function Step9Delivery() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-700">STEP 9：納期・設置場所・備考</h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">取付場所（住所）</label>
