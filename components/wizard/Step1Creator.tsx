@@ -134,7 +134,7 @@ export default function Step1Creator() {
         />
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end -mx-8 px-8 pt-3 pb-3 mt-2 sticky bottom-0 bg-white/95 backdrop-blur border-t border-gray-200">
         <button
           onClick={handleNext}
           className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition"

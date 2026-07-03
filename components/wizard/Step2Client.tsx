@@ -152,7 +152,7 @@ export default function Step2Client() {
 
 function NavButtons({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {
   return (
-    <div className="flex justify-between pt-4">
+    <div className="flex justify-between gap-3 -mx-8 px-8 pt-3 pb-3 mt-2 sticky bottom-0 bg-white/95 backdrop-blur border-t border-gray-200">
       <button onClick={onPrev} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">
         ← 戻る
       </button>
