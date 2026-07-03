@@ -37,6 +37,20 @@ const DM_DIRECT_EC_ITEM_MAP: Record<string, string> = {
   EC233:  '1070004',  // EC233S-QSM70Q-Direct connect-DC2-H31
 };
 
+// SWクイックカプラ（マシンヒッチ）のメーカー×クラス（S規格）別 代表品番。
+// catalogに機種別の品番が無い機種は、この対応表で同クラスの品番を補完する。
+const SW_HITCH_BY_CLASS: Record<string, Partial<Record<string, string>>> = {
+  CAT:      { S40: '1081567', S45: '1081565', S60: '1080537', S70: '1080220', S80: '1080777' },
+  KOMATSU:  { S40: '1082059', S45: '1081850', S60: '1073302', S70: '1082035', S80: '1080777' },
+  HITACHI:  { S40: '1079607', S45: '1081565', S60: '1078990', S70: '1081220', S80: '1080777' },
+  KOBELCO:  { S40: '1081826', S45: '1079647', S60: '1077618', S70: '1082007', S80: '1080777' },
+  SUMITOMO: { S45: '1079651', S60: '1077618', S70: '1043881', S80: '1080777' },
+  VOLVO:    { S40: '1079607', S60: '1072518', S70: '1044878', S80: '1080777' },
+  KATO:     { S45: '1081850', S60: '1073302', S70: '1082035', S80: '1080777' },  // コマツに合わせる
+  KUBOTA:   { S40: '1081782', S45: '1081565' },  // S60以上なし
+  YANMAR:   { S40: '1081782', S45: '1081971' },  // S60以上なし
+};
+
 const GRD_ITEM_MAP: Record<string, { item_no: string; name: string }> = {
   S40: { item_no: '1065797', name: 'グリッパー GRD40' },
   S45: { item_no: '1079540', name: 'グリッパー GRD45' },
@@ -183,10 +197,17 @@ export default function Step5ItemList() {
       built.push(makeItem(`グリッパー（${s_standard}対応品）`, undefined, price_type));
     }
 
-    // 3. マシンヒッチ/クイックカプラ（機種別品番。SWのみ計上、DMでは使用しない。GRD系品番はグリッパーのため除外）
-    if (mount_type === 'SW' && catalogEntry?.hitch_item_no && !GRD_TYPE_HITCH_ITEM_NOS.has(catalogEntry.hitch_item_no)) {
-      const hitch = await lookup(catalogEntry.hitch_item_no);
-      built.push(makeItem('マシンヒッチ/クイックカプラ', hitch.price, price_type, catalogEntry.hitch_item_no, 1, hitch.description));
+    // 3. マシンヒッチ/クイックカプラ（SWのみ計上、DMでは使用しない）
+    //    catalogの機種別品番を優先。無い（またはGRD系＝グリッパー）場合はメーカー×クラスの代表品番で補完。
+    if (mount_type === 'SW') {
+      const catalogHitch = (catalogEntry?.hitch_item_no && !GRD_TYPE_HITCH_ITEM_NOS.has(catalogEntry.hitch_item_no))
+        ? catalogEntry.hitch_item_no
+        : undefined;
+      const swHitchNo = catalogHitch ?? SW_HITCH_BY_CLASS[machine_maker]?.[s_standard];
+      if (swHitchNo) {
+        const hitch = await lookup(swHitchNo);
+        built.push(makeItem('マシンヒッチ/クイックカプラ', hitch.price, price_type, swHitchNo, 1, hitch.description));
+      }
     }
 
     // 4. DCシステム品目
