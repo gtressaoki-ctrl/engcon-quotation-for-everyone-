@@ -160,7 +160,15 @@ export default function Step6bVariants() {
                   <p className="text-sm text-yellow-600">カタログ品番なし — Step8（品目一覧）で手動入力してください</p>
                 ) : (
                   <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {variantList.map((v) => {
+                    {[...variantList].sort((a, b) => {
+                      // 在庫あり→上、在庫データなし→中、在庫なし→下
+                      const rank = (no: string) => {
+                        const s = inventory[no];
+                        if (s === undefined) return 1;
+                        return s > 0 ? 0 : 2;
+                      };
+                      return rank(a.item_no) - rank(b.item_no);
+                    }).map((v) => {
                       const stock = inventory[v.item_no] ?? null;
                       const outOfStock = stock !== null && stock <= 0;
                       return (

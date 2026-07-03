@@ -65,9 +65,10 @@ const GRD_TYPE_HITCH_ITEM_NOS = new Set([
 // CAT専用：DC2/MIG2セット品番（308以下＝CAT NG 301-310 用 / 313以上GCシリーズ用）
 const CAT_DC2_SET_NG_301_310 = '8001080';
 const CAT_DC2_SET_GC_313_PLUS = '8001221';
-const CAT_DC2_QSC = '8002201';      // サンドイッチ用 QSC
-const CAT_QSAFE = '8000271';        // ダイレクトマウント用 Qsafe
-const CAT_DC3_QSC = '8001992';      // -07シリーズ DC3 サンドイッチ用 QSC
+const CAT_DC2_QSC = '8002201';      // DC2 サンドイッチ用 QSC（EXTDC2-MAP30）
+const CAT_QSAFE = '8000271';        // Qsafe（Q-safe-QLM）。DM用
+const CAT_DC3_HARNESS = '8001992';  // DC3コントロールシステム（DC3-MAP4-eML-CAT-313-335NG）
+const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MAP32-QH5-CAT 313 NG）
 
 // CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
 const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
@@ -212,11 +213,11 @@ export default function Step5ItemList() {
 
       if (dc_system === 'DC3') {
         // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
-        const harness = await lk(CAT_DC3_QSC);
-        built.push(makeItem('DC3コントロールシステム', harness.price, price_type, CAT_DC3_QSC, 1, harness.description));
+        const harness = await lk(CAT_DC3_HARNESS);
+        built.push(makeItem('DC3コントロールシステム', harness.price, price_type, CAT_DC3_HARNESS, 1, harness.description));
         if (mount_type === 'SW') {
-          const qlm = await lk(CAT_QSAFE);
-          built.push(makeItem('QSCシステム', qlm.price, price_type, CAT_QSAFE, 1, qlm.description));
+          const qsc = await lk(CAT_DC3_QSC);
+          built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC3_QSC, 1, qsc.description));
         } else {
           const qs = await lk(CAT_QSAFE);
           built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
