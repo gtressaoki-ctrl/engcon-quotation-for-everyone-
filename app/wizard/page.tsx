@@ -44,7 +44,11 @@ export default function WizardPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 text-center mb-4">engcon 見積もり作成</h1>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/engcon-logo-on-yellow.jpg" alt="engcon" className="h-8 rounded" />
+            <span className="text-sm text-gray-600">見積もり作成システム</span>
+          </div>
 
           <div className="flex overflow-x-auto gap-1 pb-2">
             {STEP_LABELS.map((label, i) => {
@@ -58,9 +62,9 @@ export default function WizardPage() {
                   disabled={!isDone}
                   className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full transition ${
                     isCurrent
-                      ? 'bg-blue-600 text-white font-semibold'
+                      ? 'bg-accent text-black font-semibold'
                       : isDone
-                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer'
+                      ? 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 cursor-pointer'
                       : 'bg-gray-100 text-gray-400'
                   }`}
                 >

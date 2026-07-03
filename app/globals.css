@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* === engcon ブランドトークン ===
+   engcon yellow (PMS 116C, RGB 255,211,0) が主色、black が唯一の副色。
+   値はこの3行を書き換えれば全体に反映される。 */
+:root {
+  --brand-yellow: #FFD300;
+  --brand-black: #000000;
+
+  --color-primary: var(--brand-black);  /* 主ボタン・見出し・本文 */
+  --color-accent: var(--brand-yellow);  /* アクティブ・強調・選択状態（黄の上は必ず黒文字） */
+}
+
+body {
+  font-family: var(--font-inter), var(--font-noto), sans-serif;
+  font-feature-settings: 'tnum';  /* 数字を等幅（品番・金額の桁揃え） */
+}
+
+/* チェックボックス・ラジオをブランド色（黒）に */
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--brand-black);
+}

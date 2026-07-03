@@ -40,7 +40,7 @@ export default function Step10Confirm() {
     <div className="space-y-6">
 
       {state.revision_of_quote_number && !quoteNumber && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+        <div className="p-3 bg-neutral-100 border-l-4 border-accent rounded-lg text-black text-sm">
           見積番号 <strong>{state.revision_of_quote_number}</strong> の改訂として保存されます。
         </div>
       )}
@@ -135,7 +135,7 @@ export default function Step10Confirm() {
         <div className="flex justify-between"><span>小計（税抜）</span><span className="font-medium">¥{subtotal.toLocaleString()}</span></div>
         <div className="flex justify-between"><span>消費税（10%）</span><span>¥{tax.toLocaleString()}</span></div>
         <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
-          <span>御見積金額（税込）</span><span className="text-blue-700">¥{total.toLocaleString()}</span>
+          <span>御見積金額（税込）</span><span className="text-black">¥{total.toLocaleString()}</span>
         </div>
       </div>
 

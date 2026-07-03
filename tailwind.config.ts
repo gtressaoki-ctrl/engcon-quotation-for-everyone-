@@ -7,7 +7,16 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        brand: {
+          yellow: 'var(--brand-yellow)',
+          black: 'var(--brand-black)',
+        },
+        primary: 'var(--color-primary)',
+        accent: 'var(--color-accent)',
+      },
+    },
   },
   plugins: [],
 };

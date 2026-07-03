@@ -130,7 +130,7 @@ export default function Step6bVariants() {
         <div className="flex justify-between pt-4">
           <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
           <button onClick={() => { update({ pending_attachments: {} }); nextStep(); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+            className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
         </div>
       </div>
     );
@@ -172,14 +172,14 @@ export default function Step6bVariants() {
                             value={v.item_no}
                             checked={selections[catId] === v.item_no}
                             onChange={() => setSelections((prev) => ({ ...prev, [catId]: v.item_no }))}
-                            className="w-4 h-4 text-blue-600 mt-0.5 shrink-0"
+                            className="w-4 h-4 text-black mt-0.5 shrink-0"
                           />
                           <span className={`flex-1 ${outOfStock ? 'text-red-500' : ''}`}>
                             <span className="font-mono text-xs text-gray-600">{v.item_no}</span>
                             {'　'}
                             {v.description}
                             {parseBucketSize(v.description) && (
-                              <span className="ml-2 text-xs text-blue-600 font-medium">
+                              <span className="ml-2 text-xs text-black font-medium">
                                 {parseBucketSize(v.description)}
                               </span>
                             )}
@@ -204,7 +204,7 @@ export default function Step6bVariants() {
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
         <button onClick={handleNext} disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+          className="bg-primary hover:bg-neutral-800 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );

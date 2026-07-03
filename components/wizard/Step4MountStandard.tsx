@@ -43,7 +43,7 @@ export default function Step4MountStandard() {
           {([['SW', 'サンドイッチ（SW）'], ['DM', 'ダイレクトマウント（DM）']] as const).map(([val, label]) => (
             <label key={val} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" value={val} checked={mount_type === val}
-                onChange={() => update({ mount_type: val })} className="w-4 h-4 text-blue-600" />
+                onChange={() => update({ mount_type: val })} className="w-4 h-4 text-black" />
               <span>{label}</span>
             </label>
           ))}
@@ -53,7 +53,7 @@ export default function Step4MountStandard() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">S規格</label>
         <select value={s_standard} onChange={(e) => handleSStandardChange(e.target.value as SStandard)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black">
           {(['S30', 'S40', 'S45', 'S60', 'S70', 'S80'] as SStandard[]).map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
@@ -63,7 +63,7 @@ export default function Step4MountStandard() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">ECモデル</label>
         <select value={ec_model} onChange={(e) => update({ ec_model: e.target.value })}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black">
           {ecOptions.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
         {s_standard === 'S40' && mount_type === 'DM' && (
@@ -79,7 +79,7 @@ export default function Step4MountStandard() {
           {(['DC2', 'DC3'] as const).map((dc) => (
             <label key={dc} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" value={dc} checked={dc_system === dc}
-                onChange={() => update({ dc_system: dc })} className="w-4 h-4 text-blue-600" />
+                onChange={() => update({ dc_system: dc })} className="w-4 h-4 text-black" />
               <span>{dc}</span>
             </label>
           ))}
@@ -88,7 +88,7 @@ export default function Step4MountStandard() {
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={handleNext} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );

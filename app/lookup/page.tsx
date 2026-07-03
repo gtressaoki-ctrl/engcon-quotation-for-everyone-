@@ -46,7 +46,7 @@ export default function PriceLookupPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800">品番から金額を確認</h1>
-          <Link href="/" className="text-sm text-blue-600 hover:underline">← トップへ</Link>
+          <Link href="/" className="text-sm text-black hover:underline">← トップへ</Link>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -58,11 +58,11 @@ export default function PriceLookupPage() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="例：1080310 / Direct connect"
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             />
             <button
               onClick={search}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition whitespace-nowrap shrink-0"
+              className="bg-primary hover:bg-neutral-800 text-white font-medium px-6 py-2 rounded-lg transition whitespace-nowrap shrink-0"
             >
               検索
             </button>

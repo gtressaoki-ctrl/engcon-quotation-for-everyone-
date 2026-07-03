@@ -110,18 +110,18 @@ export default function Step8Costs() {
         {extra_costs.map((ec, i) => (
           <div key={i} className="flex gap-2 mb-2">
             <input type="text" value={ec.name} onChange={(e) => updateExtra(i, 'name', e.target.value)}
-              placeholder="品名" className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+              placeholder="品名" className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm" />
             <input type="number" value={ec.amount} onChange={(e) => updateExtra(i, 'amount', parseInt(e.target.value) || 0)}
-              placeholder="金額" className="w-28 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+              placeholder="金額" className="w-28 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm" />
             <button onClick={() => removeExtra(i)} className="text-red-400 hover:text-red-600 px-2">✕</button>
           </div>
         ))}
-        <button onClick={addExtra} className="text-sm text-blue-600 hover:underline">+ その他費用を追加</button>
+        <button onClick={addExtra} className="text-sm text-black hover:underline">+ その他費用を追加</button>
       </div>
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={nextStep} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={nextStep} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ function Field({ label, value, onChange }: { label: string; value: number; onCha
       <input type="number" min={0} value={value || ''}
         onChange={(e) => onChange(parseInt(e.target.value) || 0)}
         placeholder="0"
-        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
     </div>
   );
 }

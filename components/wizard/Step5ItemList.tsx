@@ -344,7 +344,7 @@ export default function Step5ItemList() {
                     {item.is_custom ? (
                       <input type="text" value={item.name_ja}
                         onChange={(e) => updateItem(i, 'name_ja', e.target.value)}
-                        className="w-full border-0 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded px-1" />
+                        className="w-full border-0 focus:outline-none focus:ring-1 focus:ring-black rounded px-1" />
                     ) : (
                       <span>{item.name_ja}</span>
                     )}
@@ -365,7 +365,7 @@ export default function Step5ItemList() {
                     <input type="number" min={0} value={item.unit_price ?? ''}
                       onChange={(e) => updateItem(i, 'unit_price', parseInt(e.target.value) || 0)}
                       placeholder="—"
-                      className="w-24 text-right border border-gray-200 rounded px-1 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+                      className="w-24 text-right border border-gray-200 rounded px-1 focus:outline-none focus:ring-1 focus:ring-black" />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     {item.amount != null ? item.amount.toLocaleString() : '—'}
@@ -387,13 +387,13 @@ export default function Step5ItemList() {
               ))}
             </tbody>
           </table>
-          <button onClick={addItem} className="mt-2 text-sm text-blue-600 hover:underline">+ 品目を追加</button>
+          <button onClick={addItem} className="mt-2 text-sm text-black hover:underline">+ 品目を追加</button>
         </div>
       )}
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={nextStep} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={nextStep} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );

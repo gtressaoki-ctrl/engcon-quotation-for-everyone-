@@ -55,10 +55,10 @@ export default function Step1Creator() {
           {([['tiltrotator', 'チルトローテータ一式'], ['attachment', 'アタッチメントのみ']] as const).map(([val, label]) => (
             <label key={val}
               className={`flex items-center gap-2 cursor-pointer border rounded-lg px-4 py-3 transition ${
-                quote_mode === val ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-300 hover:bg-gray-50'
+                quote_mode === val ? 'border-black bg-yellow-50 text-black font-medium' : 'border-gray-300 hover:bg-gray-50'
               }`}>
               <input type="radio" value={val} checked={quote_mode === val}
-                onChange={() => update({ quote_mode: val })} className="w-4 h-4 text-blue-600" />
+                onChange={() => update({ quote_mode: val })} className="w-4 h-4 text-black" />
               <span>{label}</span>
             </label>
           ))}
@@ -85,7 +85,7 @@ export default function Step1Creator() {
                     creator_company: t === 'gtres' ? '株式会社 G.TRES' : '',
                   })
                 }
-                className="w-4 h-4 text-blue-600"
+                className="w-4 h-4 text-black"
               />
               <span>{t === 'gtres' ? 'G.TRES社員' : 'ディーラー'}</span>
             </label>
@@ -116,7 +116,7 @@ export default function Step1Creator() {
             value={creator_company}
             onChange={(e) => update({ creator_company: e.target.value })}
             placeholder="会社名を入力"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
         )}
       </div>
@@ -130,14 +130,14 @@ export default function Step1Creator() {
           value={creator_name}
           onChange={(e) => update({ creator_name: e.target.value })}
           placeholder="担当者名を入力"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
         />
       </div>
 
       <div className="flex justify-end">
         <button
           onClick={handleNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition"
+          className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition"
         >
           次へ →
         </button>

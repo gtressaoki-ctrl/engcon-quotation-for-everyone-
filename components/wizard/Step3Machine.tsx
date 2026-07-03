@@ -105,7 +105,7 @@ export default function Step3Machine() {
           {(['new', 'used'] as const).map((c) => (
             <label key={c} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" value={c} checked={machine_condition === c}
-                onChange={() => update({ machine_condition: c })} className="w-4 h-4 text-blue-600" />
+                onChange={() => update({ machine_condition: c })} className="w-4 h-4 text-black" />
               <span>{c === 'new' ? '新車' : '中古車'}</span>
             </label>
           ))}
@@ -115,7 +115,7 @@ export default function Step3Machine() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">メーカー</label>
         <select value={machine_maker} onChange={(e) => handleMakerChange(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black">
           {MAKERS.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
@@ -129,7 +129,7 @@ export default function Step3Machine() {
             <select
               value={isInCatalog ? machine_model : '__custom__'}
               onChange={(e) => handleModelSelect(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             >
               <option value="">機種を選択してください</option>
               {catalogModels.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -141,7 +141,7 @@ export default function Step3Machine() {
                 value={machine_model}
                 onChange={(e) => handleCustomModelChange(e.target.value)}
                 placeholder="機種名を直接入力"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
             )}
             {isInCatalog && (
@@ -159,7 +159,7 @@ export default function Step3Machine() {
           <input type="text" value={machine_model}
             onChange={(e) => update({ machine_model: e.target.value })}
             placeholder="例：320GC"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
         )}
       </div>
 
@@ -168,27 +168,27 @@ export default function Step3Machine() {
         <input type="text" value={machine_year}
           onChange={(e) => update({ machine_year: e.target.value })}
           placeholder="例：2022年3月"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
       </div>
 
       <div className="space-y-3">
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={cabin_confirmed}
             onChange={(e) => update({ cabin_confirmed: e.target.checked })}
-            className="w-5 h-5 mt-0.5 text-blue-600" />
+            className="w-5 h-5 mt-0.5 text-black" />
           <span className="text-sm text-gray-700">キャノピー仕様への取付を希望する場合はチェックしてください</span>
         </label>
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={piping_confirmed}
             onChange={(e) => update({ piping_confirmed: e.target.checked })}
-            className="w-5 h-5 mt-0.5 text-blue-600" />
+            className="w-5 h-5 mt-0.5 text-black" />
           <span className="text-sm text-gray-700">共用配管を確認しました <span className="text-red-500">*</span></span>
         </label>
       </div>
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={handleNext} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );

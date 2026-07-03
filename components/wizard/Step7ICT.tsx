@@ -53,13 +53,13 @@ export default function Step7ICT() {
           {([true, false] as const).map((v) => (
             <label key={String(v)} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" checked={has_ict === v} onChange={() => update({ has_ict: v })}
-                className="w-4 h-4 text-blue-600" />
+                className="w-4 h-4 text-black" />
               <span>{v ? 'あり' : 'なし'}</span>
             </label>
           ))}
         </div>
         {dc_system === 'DC2' && has_ict && (
-          <p className="mt-2 text-xs text-blue-600">✓ DC2：C2Cが品目に追加されます</p>
+          <p className="mt-2 text-xs text-black">✓ DC2：C2Cが品目に追加されます</p>
         )}
       </div>
 
@@ -79,24 +79,24 @@ export default function Step7ICT() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">メーカー名</label>
             <input type="text" value={ict_maker} onChange={(e) => update({ ict_maker: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">機種名</label>
             <input type="text" value={ict_model} onChange={(e) => update({ ict_model: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">備考</label>
             <textarea value={ict_note} onChange={(e) => update({ ict_note: e.target.value })} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
           </div>
         </div>
       )}
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={nextStep} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={nextStep} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );

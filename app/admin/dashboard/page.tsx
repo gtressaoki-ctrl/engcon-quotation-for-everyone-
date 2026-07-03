@@ -169,7 +169,7 @@ export default function AdminDashboard() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
         <h1 className="text-lg font-bold text-gray-800">管理者ダッシュボード</h1>
         <div className="flex gap-4 items-center">
-          <a href="/admin/dealers" className="text-sm text-blue-600 hover:underline">ディーラー管理</a>
+          <a href="/admin/dealers" className="text-sm text-black hover:underline">ディーラー管理</a>
           <button
             onClick={runSetup}
             className="text-sm bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded"
@@ -229,7 +229,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex gap-3 mt-3">
-            <button onClick={fetchQuotes} className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg">検索</button>
+            <button onClick={fetchQuotes} className="bg-primary hover:bg-neutral-800 text-white text-sm px-4 py-2 rounded-lg">検索</button>
             <button onClick={exportCsv} className="border border-gray-300 hover:bg-gray-50 text-sm px-4 py-2 rounded-lg">CSVエクスポート</button>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function AdminDashboard() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={reviseQuote} className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded">
+                    <button onClick={reviseQuote} className="text-sm bg-primary hover:bg-neutral-800 text-white px-3 py-1.5 rounded">
                       この見積を改訂する
                     </button>
                     <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
@@ -377,7 +377,7 @@ export default function AdminDashboard() {
                   <div className="flex justify-between"><span>小計（税抜）</span><span className="font-medium">¥{detail.quote.subtotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span>消費税</span><span>¥{detail.quote.tax.toLocaleString()}</span></div>
                   <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
-                    <span>御見積金額（税込）</span><span className="text-blue-700">¥{detail.quote.total.toLocaleString()}</span>
+                    <span>御見積金額（税込）</span><span className="text-black">¥{detail.quote.total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: '株式会社 G.TRES engcon チルトローテータ 見積もり作成',
     start_url: '/',
     display: 'standalone',
-    background_color: '#f9fafb',
-    theme_color: '#1d4ed8',
+    background_color: '#FFD300',
+    theme_color: '#000000',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },

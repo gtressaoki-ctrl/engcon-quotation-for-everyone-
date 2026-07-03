@@ -43,12 +43,12 @@ export default function Step2Client() {
   if (creator_type === 'dealer') {
     return (
       <div className="space-y-6">
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+        <div className="p-4 bg-neutral-100 border-l-4 border-accent rounded-lg text-sm text-black">
           <p className="font-medium mb-2">見積先は自動設定されます</p>
           <p>
             発行元：株式会社 G.TRES　→　見積先：<strong>{creator_company}</strong>
           </p>
-          <p className="mt-1 text-blue-600">ディーラー向け卸価格が自動適用されます。</p>
+          <p className="mt-1 text-black">ディーラー向け卸価格が自動適用されます。</p>
         </div>
         <NavButtons onPrev={prevStep} onNext={nextStep} />
       </div>
@@ -72,7 +72,7 @@ export default function Step2Client() {
                 value={opt.value}
                 checked={client_type === opt.value}
                 onChange={() => update({ client_type: opt.value as typeof client_type, client_name: '' })}
-                className="w-4 h-4 text-blue-600"
+                className="w-4 h-4 text-black"
               />
               <span>{opt.label}</span>
             </label>
@@ -91,7 +91,7 @@ export default function Step2Client() {
               if (e.target.value !== '__custom__') update({ client_name: e.target.value });
               else update({ client_name: customDealer });
             }}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-black"
           >
             <option value="">選択してください</option>
             {dealers.map((d) => (
@@ -105,7 +105,7 @@ export default function Step2Client() {
               value={customDealer}
               onChange={(e) => { setCustomDealer(e.target.value); update({ client_name: e.target.value }); }}
               placeholder="ディーラー名を直接入力"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             />
           )}
         </div>
@@ -121,7 +121,7 @@ export default function Step2Client() {
             type="text"
             value={client_name}
             onChange={(e) => update({ client_name: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
       )}
@@ -140,7 +140,7 @@ export default function Step2Client() {
             value={reseller_rate ?? ''}
             onChange={(e) => update({ reseller_rate: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
             placeholder="例：85"
-            className="w-32 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-32 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
       )}
@@ -156,7 +156,7 @@ function NavButtons({ onPrev, onNext }: { onPrev: () => void; onNext: () => void
       <button onClick={onPrev} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">
         ← 戻る
       </button>
-      <button onClick={onNext} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">
+      <button onClick={onNext} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">
         次へ →
       </button>
     </div>

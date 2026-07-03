@@ -30,7 +30,7 @@ export default function Step6Attachments() {
     const checked = !!selected[cat.id];
     return (
       <label key={cat.id} className="flex items-center gap-3 cursor-pointer text-sm border border-gray-200 rounded-lg px-3 py-2">
-        <input type="checkbox" checked={checked} onChange={() => toggle(cat.id)} className="w-5 h-5 text-blue-600 shrink-0" />
+        <input type="checkbox" checked={checked} onChange={() => toggle(cat.id)} className="w-5 h-5 text-black shrink-0" />
         <span className="flex-1">{cat.label_ja}</span>
         {checked && (
           <Stepper value={selected[cat.id]} onChange={(v) => setSelected((p) => ({ ...p, [cat.id]: v }))} />
@@ -55,7 +55,7 @@ export default function Step6Attachments() {
 
       <div className="flex justify-between pt-4">
         <button onClick={prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition">← 戻る</button>
-        <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
+        <button onClick={handleNext} className="bg-primary hover:bg-neutral-800 text-white font-medium px-8 py-3 rounded-lg transition">次へ →</button>
       </div>
     </div>
   );
