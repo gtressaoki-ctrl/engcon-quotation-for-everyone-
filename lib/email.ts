@@ -1,5 +1,4 @@
 import { Resend } from 'resend';
-import { findDealerEmail } from './dealerContacts';
 
 const NOTIFY_TO = 'g.tres.saoki@gmail.com';
 const FROM = 'engcon見積システム <onboarding@resend.dev>';
@@ -8,7 +7,6 @@ export async function sendDealerQuoteNotification(params: {
   quoteNumber: string;
   creatorCompany: string;
   creatorName: string;
-  creatorEmail?: string;
   clientName: string;
   total: number;
 }) {
@@ -19,13 +17,14 @@ export async function sendDealerQuoteNotification(params: {
   }
 
   const resend = new Resend(apiKey);
-  const { quoteNumber, creatorCompany, creatorName, creatorEmail, clientName, total } = params;
-  const dealerEmail = findDealerEmail(creatorCompany, creatorName) || creatorEmail?.trim() || undefined;
+  const { quoteNumber, creatorCompany, creatorName, clientName, total } = params;
 
+  // 送信元ドメインが未検証のResend環境では、社外アドレスをCC/Toに含めると
+  // 送信ごと失敗し得る。通知はResendアカウント登録済みのG.TRES宛(To)のみに送り、
+  // 確実に届くようにする（ディーラーへの控えはアプリ側で見返せる想定）。
   await resend.emails.send({
     from: FROM,
     to: NOTIFY_TO,
-    cc: dealerEmail,
     subject: `【見積作成通知】${creatorCompany} - ${quoteNumber}`,
     text: [
       'ディーラーによる見積が作成されました。',
