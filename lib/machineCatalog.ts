@@ -282,7 +282,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'YANMAR', model: 'ViO55', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'YANMAR', model: 'ViO57U', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'YANMAR', model: 'ViO80-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
-  { maker: 'YANMAR', model: 'SV100-7', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'YANMAR', model: 'SV100-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
 ];
 
 export function getCatalogModels(maker: string): string[] {
