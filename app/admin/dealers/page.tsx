@@ -100,7 +100,7 @@ export default function DealersPage() {
               onKeyDown={(e) => e.key === 'Enter' && addDealer()}
               placeholder="新しいディーラー名"
               className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <button onClick={addDealer} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm">追加</button>
+            <button onClick={addDealer} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm whitespace-nowrap shrink-0">追加</button>
           </div>
         </div>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { ATTACHMENT_CATEGORIES } from '@/lib/attachmentCategories';
+import Stepper from '@/components/Stepper';
 
 const MECHANICAL = ATTACHMENT_CATEGORIES.filter((c) => c.group === 'mechanical');
 const HYDRAULIC = ATTACHMENT_CATEGORIES.filter((c) => c.group === 'hydraulic');
@@ -28,13 +29,11 @@ export default function Step6Attachments() {
   function renderCategory(cat: typeof ATTACHMENT_CATEGORIES[0]) {
     const checked = !!selected[cat.id];
     return (
-      <label key={cat.id} className="flex items-center gap-2 cursor-pointer text-sm">
-        <input type="checkbox" checked={checked} onChange={() => toggle(cat.id)} className="w-4 h-4 text-blue-600" />
-        {cat.label_ja}
+      <label key={cat.id} className="flex items-center gap-3 cursor-pointer text-sm border border-gray-200 rounded-lg px-3 py-2">
+        <input type="checkbox" checked={checked} onChange={() => toggle(cat.id)} className="w-5 h-5 text-blue-600 shrink-0" />
+        <span className="flex-1">{cat.label_ja}</span>
         {checked && (
-          <input type="number" min={1} value={selected[cat.id]}
-            onChange={(e) => setSelected((p) => ({ ...p, [cat.id]: parseInt(e.target.value) || 1 }))}
-            className="w-12 border border-gray-200 rounded px-1 text-right ml-1" />
+          <Stepper value={selected[cat.id]} onChange={(v) => setSelected((p) => ({ ...p, [cat.id]: v }))} />
         )}
       </label>
     );
@@ -46,12 +45,12 @@ export default function Step6Attachments() {
 
       <div>
         <h3 className="font-medium text-gray-600 mb-2">機械式アタッチメント</h3>
-        <div className="grid grid-cols-2 gap-2">{MECHANICAL.map(renderCategory)}</div>
+        <div className="space-y-2">{MECHANICAL.map(renderCategory)}</div>
       </div>
 
       <div>
         <h3 className="font-medium text-gray-600 mb-2">油圧式アタッチメント</h3>
-        <div className="grid grid-cols-2 gap-2">{HYDRAULIC.map(renderCategory)}</div>
+        <div className="space-y-2">{HYDRAULIC.map(renderCategory)}</div>
       </div>
 
       <div className="flex justify-between pt-4">

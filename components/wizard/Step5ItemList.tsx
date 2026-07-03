@@ -6,15 +6,8 @@ import { calculateSalesPrice, calculateRsmCustomerPrice, roundPrice } from '@/li
 import { supabase } from '@/lib/supabase';
 import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
-
-function InventoryBadge({ itemNo, inventory }: { itemNo?: string; inventory: Record<string, number> | null }) {
-  if (!itemNo || inventory === null) return <span className="text-gray-300 text-xs">—</span>;
-  const balance = inventory[itemNo];
-  const inStock = balance != null && balance > 0;
-  return inStock
-    ? <span className="text-green-600 text-xs font-medium whitespace-nowrap">● 在庫あり</span>
-    : <span className="text-red-400 text-xs font-medium whitespace-nowrap">● 在庫なし</span>;
-}
+import InventoryBadge from '@/components/InventoryBadge';
+import Stepper from '@/components/Stepper';
 
 const EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080111',
@@ -366,9 +359,7 @@ export default function Step5ItemList() {
                     {item.list_price != null ? item.list_price.toLocaleString() : <span className="text-yellow-600 text-xs">要確認</span>}
                   </td>
                   <td className="border border-gray-200 px-2 py-1">
-                    <input type="number" min={1} value={item.qty}
-                      onChange={(e) => updateItem(i, 'qty', parseInt(e.target.value) || 1)}
-                      className="w-16 text-right border border-gray-200 rounded px-1 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+                    <Stepper value={item.qty} onChange={(v) => updateItem(i, 'qty', v)} />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     <input type="number" min={0} value={item.unit_price ?? ''}

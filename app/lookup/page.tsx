@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import InventoryBadge from '@/components/InventoryBadge';
 
 interface PriceRow {
   item_no: string;
@@ -61,7 +62,7 @@ export default function PriceLookupPage() {
             />
             <button
               onClick={search}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition whitespace-nowrap shrink-0"
             >
               検索
             </button>
@@ -86,18 +87,12 @@ export default function PriceLookupPage() {
                 </thead>
                 <tbody>
                   {rows.map((r) => {
-                    const stock = inventory[r.item_no];
-                    const hasStock = stock != null;
                     return (
                       <tr key={r.item_no} className="border-t border-gray-100">
                         <td className="px-4 py-3 font-mono text-xs">{r.item_no}</td>
                         <td className="px-4 py-3">{r.description ?? '—'}</td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          {hasStock ? (
-                            stock > 0
-                              ? <span className="text-green-600 font-medium">{stock}</span>
-                              : <span className="text-red-400">0</span>
-                          ) : <span className="text-gray-300">—</span>}
+                          <InventoryBadge itemNo={r.item_no} inventory={inventory} />
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           {r.price_jpy != null ? `¥${r.price_jpy.toLocaleString()}` : '—'}

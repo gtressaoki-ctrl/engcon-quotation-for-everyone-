@@ -164,17 +164,17 @@ export default function Step6bVariants() {
                       const stock = inventory[v.item_no] ?? null;
                       const outOfStock = stock !== null && stock <= 0;
                       return (
-                        <label key={v.item_no} className={`flex items-start gap-2 text-sm rounded px-2 py-1 ${outOfStock ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
+                        // 在庫切れでも選択可能（赤字表示のみ・実在庫数は出さない）
+                        <label key={v.item_no} className="flex items-start gap-2 text-sm rounded px-2 py-1 cursor-pointer hover:bg-gray-50">
                           <input
                             type="radio"
                             name={catId}
                             value={v.item_no}
                             checked={selections[catId] === v.item_no}
-                            onChange={() => !outOfStock && setSelections((prev) => ({ ...prev, [catId]: v.item_no }))}
-                            disabled={outOfStock}
+                            onChange={() => setSelections((prev) => ({ ...prev, [catId]: v.item_no }))}
                             className="w-4 h-4 text-blue-600 mt-0.5 shrink-0"
                           />
-                          <span className="flex-1">
+                          <span className={`flex-1 ${outOfStock ? 'text-red-500' : ''}`}>
                             <span className="font-mono text-xs text-gray-600">{v.item_no}</span>
                             {'　'}
                             {v.description}
@@ -186,8 +186,8 @@ export default function Step6bVariants() {
                           </span>
                           <span className="text-gray-500 shrink-0">¥{v.price_jpy.toLocaleString()}</span>
                           {stock !== null && (
-                            <span className={`shrink-0 text-xs font-medium ${outOfStock ? 'text-red-400' : 'text-green-600'}`}>
-                              {outOfStock ? '在庫切れ' : `在庫 ${stock}`}
+                            <span className={`shrink-0 text-xs font-medium whitespace-nowrap ${outOfStock ? 'text-red-500' : 'text-green-600'}`}>
+                              ● {outOfStock ? '在庫なし' : '在庫あり'}
                             </span>
                           )}
                         </label>
