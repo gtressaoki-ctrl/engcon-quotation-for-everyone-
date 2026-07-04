@@ -173,6 +173,19 @@ export default function Step10Confirm() {
         </Section>
       )}
 
+      <Section title="納期・条件・備考">
+        <Row label="取付場所" value={state.delivery_location} />
+        <Row label="希望納期" value={state.delivery_date} />
+        <Row label="受渡期限" value={state.delivery_terms} />
+        <Row label="御支払条件" value={state.payment_terms} />
+        {state.note && (
+          <div className="flex text-sm gap-4">
+            <span className="text-gray-500 w-32 shrink-0">備考</span>
+            <span className="text-gray-800 whitespace-pre-wrap">{state.note}</span>
+          </div>
+        )}
+      </Section>
+
       <div className="flex justify-between gap-3 -mx-8 px-8 pt-3 pb-3 mt-2 sticky bottom-0 bg-white/95 backdrop-blur border-t border-gray-200">
         <button onClick={state.prevStep} className="border border-gray-300 hover:bg-gray-100 px-8 py-3 rounded-lg transition whitespace-nowrap shrink-0">← 戻る</button>
         <button onClick={handleSave} disabled={loading || !!quoteNumber}
