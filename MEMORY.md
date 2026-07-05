@@ -22,7 +22,10 @@ Claude（後継モデル含む）が本リポジトリで作業して得た知�
   状態を永続化しておき、ユーザーの一言で再開できる形にしておくのが現実解
 - セッション開始時の npm ci は .claude/hooks/session-start.mjs が自動実行する
 - push 後のデプロイ確認は Vercel MCP（list_deployments → get_deployment_build_logs）。
-  main が本番、ブランチ push はプレビューデプロイになる
+  main が本番、ブランチ push はプレビューデプロイになる。PR の vercel[bot] コメントが
+  Ready/Failed になるのでそれでも判定できる
+- クラウドセッションから api.github.com への直接 curl はプロキシで空応答になる。
+  CI 状態の確認は GitHub MCP ツール（actions_list 等）を使うこと（curl ポーリングは無駄）
 
 ### コードベース固有
 - 標準構成の品目生成は lib/standardConfig.ts（純関数）+ Step5ItemList（価格解決）に
