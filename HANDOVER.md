@@ -58,8 +58,8 @@
 7. **メール通知**：Resend ドメイン未検証のため To は G.TRES 固定・From は onboarding@resend.dev。
    外部アドレスを To/CC に足すと送信ごと失敗しうる（lib/email.ts のコメント参照）
 8. **在庫アップロードは全置換**（POST /api/admin/inventory）。部分更新ではない
-9. **カタログの要確認データ**：VOLVO ECR88D が MACHINE_CATALOG では S45、MACHINE_LIST では
-   S60 と食い違っている。どちらが正か**ユーザーに確認**してから直すこと（出典ルール適用）
+9. **カタログの整合性**：VOLVO ECR88D の S規格食い違いは解決済み（S45 が正、2026-07-06
+   ユーザー確認）。両テーブルの S規格一致は machineCatalog.test.ts が自動検査する
 10. **migration は main push で本番 DB に自動適用される**（.github/workflows/migrate.yml）
 
 ## 検証・運用の基本

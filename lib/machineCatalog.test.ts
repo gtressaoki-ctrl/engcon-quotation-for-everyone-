@@ -80,4 +80,20 @@ describe('カタログデータの整合性', () => {
     expect(getCatalogModels('YANMAR')).toContain('ViO30');
     expect(getCatalogModels('NOSUCH')).toEqual([]);
   });
+
+  it('両テーブルに載っている機種のS規格が一致する（ECR88D S60誤登録の再発防止）', () => {
+    const norm = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+    for (const c of MACHINE_CATALOG) {
+      const l = MACHINE_LIST.find((e) => e.maker === c.maker && norm(e.model) === norm(c.model));
+      if (l) {
+        expect(
+          { maker: c.maker, model: c.model, s_standard: l.s_standard },
+        ).toEqual({ maker: c.maker, model: c.model, s_standard: c.s_standard });
+      }
+    }
+  });
+
+  it('VOLVO ECR88DはS45（2026-07-06 ユーザー確認）', () => {
+    expect(getMachineListEntry('VOLVO', 'ECR88D')).toMatchObject({ s_standard: 'S45', ec_primary: 'EC209B' });
+  });
 });
