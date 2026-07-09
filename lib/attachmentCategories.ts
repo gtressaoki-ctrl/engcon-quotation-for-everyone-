@@ -90,11 +90,11 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
   },
   {
     id: 'sweeper_roller', label_ja: 'スイーパーローラー', group: 'hydraulic',
-    getPatterns: (n) => [`Sweeper-SWD${n}%`],
+    getPatterns: (n) => [`Sweeper-SR%-QS${n}%`, `Sweeper-SR%-S${n}%`],
   },
   {
     id: 'detachable_sweeper', label_ja: '脱着式スイーパー', group: 'hydraulic',
-    getPatterns: (n) => [`Sweeper-SR%-QS${n}%`, `Sweeper-SR%-S${n}%`],
+    getPatterns: (n) => [`Sweeper-SWD${n}%`],
   },
   {
     id: 'grapple_saw', label_ja: 'グラップルソー', group: 'hydraulic',
