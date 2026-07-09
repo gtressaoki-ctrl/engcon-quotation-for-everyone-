@@ -305,6 +305,53 @@ export function findMachineCatalogEntry(maker: string, model: string): MachineCa
     ?? MACHINE_CATALOG.find((e) => e.maker === maker && normalizeModel(e.model) === normalizeModel(model));
 }
 
+// 型式から先頭の番手（数値トークン）を取り出す。
+// 例: "SK35SR-6"→35, "PC200i-11"→200, "303.5 CR"→303.5, "ZX135US-7"→135, "SK135SR-7/…"→135
+function leadingModelNumber(model: string): number | null {
+  const m = normalizeModel(model).match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+// t数からS規格・ECモデルを推定するバンド表（メーカー不明時の最終手段）。
+// engconのS規格帯と、S40内の3t級/5t級（EC204B/EC206B）・S60内の小型/大型（EC214S/EC219）を反映。
+function estimateFromTonnage(t: number): { s: SStandard; ec: string } | null {
+  if (!isFinite(t) || t <= 0) return null;
+  if (t < 2.5) return { s: 'S30', ec: 'EC204B' };
+  if (t < 5)   return { s: 'S40', ec: 'EC204B' };
+  if (t < 6.5) return { s: 'S40', ec: 'EC206B' };  // 5t級
+  if (t < 10)  return { s: 'S45', ec: 'EC209B' };
+  if (t < 16)  return { s: 'S60', ec: 'EC214S' };
+  if (t < 19)  return { s: 'S60', ec: 'EC219' };
+  if (t < 28)  return { s: 'S70', ec: 'EC226S' };
+  return { s: 'S80', ec: 'EC233' };
+}
+
+// リストに無い機種のS規格・EC・DCを推定する。
+//  1) 同一メーカー内で番手（型式の先頭数値）が最も近い既知機種のS規格・ECを継承（世代/サフィックス違いを吸収）
+//  2) メーカー不明などで同一メーカー機種が無い場合は、番手÷10 を t数とみなしバンド表から推定
+// DCは常にDC2（DC3は明示指定機種のみ。VOLVOのDC3条件は別途整理）。
+export function fuzzyMachineListEntry(maker: string, model: string): MachineListEntry | undefined {
+  const target = leadingModelNumber(model);
+  if (target == null) return undefined;
+
+  const sameMaker = MACHINE_LIST.filter((e) => e.maker === maker);
+  if (sameMaker.length > 0) {
+    let best: MachineListEntry | undefined;
+    let bestDiff = Infinity;
+    for (const e of sameMaker) {
+      const n = leadingModelNumber(e.model);
+      if (n == null) continue;
+      const diff = Math.abs(n - target);
+      if (diff < bestDiff) { bestDiff = diff; best = e; }
+    }
+    if (best) return { ...best, model, dc: 'DC2' };
+  }
+
+  // メーカー不明：番手÷10 を t数とみなす（多くのメーカーが t×10 を型番に採用）
+  const est = estimateFromTonnage(target / 10);
+  return est ? { maker, model, s_standard: est.s, ec_primary: est.ec, dc: 'DC2' } : undefined;
+}
+
 export function lookupCatalog(
   maker: string,
   model: string,

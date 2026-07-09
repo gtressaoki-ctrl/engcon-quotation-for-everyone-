@@ -1,7 +1,7 @@
 'use client';
 
 import { useWizardStore } from '@/lib/wizardStore';
-import { getCatalogModels, getMachineListEntry, findMachineCatalogEntry } from '@/lib/machineCatalog';
+import { getCatalogModels, getMachineListEntry, findMachineCatalogEntry, fuzzyMachineListEntry } from '@/lib/machineCatalog';
 
 const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'YANMAR', 'KATO', 'VOLVO', 'その他'];
 
@@ -82,7 +82,14 @@ export default function Step3Machine() {
       return;
     }
 
-    // 一致なし：機種名のみ反映（S規格は手動確認が必要）
+    // リスト完全一致なし：型式の番手からS規格・ECを推定（DCはDC2固定）
+    const fuzzy = fuzzyMachineListEntry(machine_maker, model);
+    if (fuzzy) {
+      update({ machine_model: model, s_standard: fuzzy.s_standard, dc_system: 'DC2', ec_model: fuzzy.ec_primary });
+      return;
+    }
+
+    // 推定もできない：機種名のみ反映（S規格は手動確認が必要）
     update({ machine_model: model });
   }
 
@@ -150,16 +157,35 @@ export default function Step3Machine() {
               </p>
             )}
             {!isInCatalog && machine_model && !getMachineListEntry(machine_maker, machine_model) && !findMachineCatalogEntry(machine_maker, machine_model) && (
-              <p className="text-xs text-yellow-600">
-                ⚠ カタログに一致する機種が見つかりません。S規格（現在：{s_standard}）を STEP 4 で必ず確認してください。
-              </p>
+              (() => {
+                const est = fuzzyMachineListEntry(machine_maker, machine_model);
+                return est ? (
+                  <p className="text-xs text-blue-600">
+                    ≈ 型式の番手から推定：S規格 {est.s_standard} ／ EC {est.ec_primary} ／ DC2（STEP4で確認・修正できます）
+                  </p>
+                ) : (
+                  <p className="text-xs text-yellow-600">
+                    ⚠ 型式から番手を読み取れませんでした。S規格（現在：{s_standard}）を STEP 4 で必ず確認してください。
+                  </p>
+                );
+              })()
             )}
           </div>
         ) : (
-          <input type="text" value={machine_model}
-            onChange={(e) => update({ machine_model: e.target.value })}
-            placeholder="例：320GC"
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
+          <div className="space-y-2">
+            <input type="text" value={machine_model}
+              onChange={(e) => handleCustomModelChange(e.target.value)}
+              placeholder="型式を入力（番手からS規格・ECを推定）"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
+            {machine_model && (() => {
+              const est = fuzzyMachineListEntry(machine_maker, machine_model);
+              return est ? (
+                <p className="text-xs text-blue-600">
+                  ≈ 型式の番手から推定：S規格 {est.s_standard} ／ EC {est.ec_primary} ／ DC2（STEP4で確認・修正できます）
+                </p>
+              ) : null;
+            })()}
+          </div>
         )}
       </div>
 
