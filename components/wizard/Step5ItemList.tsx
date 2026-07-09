@@ -109,6 +109,8 @@ export default function Step5ItemList() {
   } = useWizardStore();
   const [loading, setLoading] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number> | null>(null);
+  const [lookupNo, setLookupNo] = useState('');
+  const [lookupBusy, setLookupBusy] = useState(false);
 
   useEffect(() => {
     fetch('/api/inventory')
@@ -312,6 +314,43 @@ export default function Step5ItemList() {
     setItems([...items, { sort_order: items.length + 1, name_ja: '', qty: 1, is_custom: true }]);
   }
 
+  // 品番を入力して価格マスタから品名・定価を引き当てて明細に追加する。
+  // 構成品に不足があるとき、品番だけで品目・価格を反映できる。
+  async function addByItemNo() {
+    const no = lookupNo.trim();
+    if (!no) return;
+    setLookupBusy(true);
+    const r = await lookup(no);
+    setLookupBusy(false);
+    if (r.price == null && r.description == null) {
+      alert(`品番「${no}」は価格マスタに見つかりませんでした。品番をご確認ください（見つからない場合は「+ 空の品目を追加」で手動入力できます）。`);
+      return;
+    }
+    const item = makeItem(r.description ?? no, r.price, price_type, no, 1, r.description);
+    setItems([...items, { ...item, sort_order: items.length + 1 }]);
+    setLookupNo('');
+  }
+
+  function renderAddRow(extraClass = '') {
+    return (
+      <div className={`flex flex-wrap items-center gap-2 ${extraClass}`}>
+        <input
+          type="text"
+          value={lookupNo}
+          onChange={(e) => setLookupNo(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addByItemNo(); } }}
+          placeholder="品番を入力（例: 1080111）"
+          className="border border-gray-300 rounded px-3 py-2 text-sm flex-1 min-w-[10rem] focus:outline-none focus:ring-1 focus:ring-black"
+        />
+        <button onClick={addByItemNo} disabled={lookupBusy}
+          className="bg-primary hover:bg-neutral-800 disabled:bg-gray-400 text-white text-sm px-4 py-2 rounded whitespace-nowrap shrink-0">
+          {lookupBusy ? '検索中...' : '品番で追加'}
+        </button>
+        <button onClick={addItem} className="text-sm text-black hover:underline whitespace-nowrap shrink-0">+ 空の品目を追加</button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
 
@@ -389,7 +428,7 @@ export default function Step5ItemList() {
               ))}
             </tbody>
           </table>
-          <button onClick={addItem} className="mt-2 text-sm text-black hover:underline">+ 品目を追加</button>
+          {renderAddRow('mt-3')}
         </div>
 
         {/* モバイル：品目カード */}
@@ -439,7 +478,7 @@ export default function Step5ItemList() {
               )}
             </div>
           ))}
-          <button onClick={addItem} className="text-sm text-black hover:underline">+ 品目を追加</button>
+          {renderAddRow('')}
         </div>
         </>
       )}
