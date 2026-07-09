@@ -181,6 +181,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'KOBELCO', model: 'SK28SR-6', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK30SR-7', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK30UR-6', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
+  { maker: 'KOBELCO', model: 'SK35SR-6', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK35SR-7', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK38UR-6', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
   { maker: 'KOBELCO', model: 'SK40SR-5', s_standard: 'S40', ec_primary: 'EC204B', dc: 'DC2' },
