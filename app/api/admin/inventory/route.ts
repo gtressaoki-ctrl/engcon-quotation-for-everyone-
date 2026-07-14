@@ -35,7 +35,14 @@ export async function POST(req: NextRequest) {
 
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
 
-  // 在庫数の列は環境により表記ゆれがある（engcon標準は "Current balance"、旧仕様は "Total balance" 等）。
+  // FLOOR（現物在庫）の判定に使う列は、出力形式により "Location" だったり "WH"（倉庫）だったりする。
+  // どちらかの列が FLOOR ならFLOOR在庫とみなす。
+  const LOCATION_KEYS = ['Location', 'WH', 'Warehouse', 'Loc'];
+  function isFloor(row: Record<string, unknown>): boolean {
+    return LOCATION_KEYS.some((k) => String(row[k] ?? '').trim().toUpperCase() === 'FLOOR');
+  }
+
+  // 在庫数の列は環境により表記ゆれがある（"Current balance" / "Total balance" 等）。
   // 値も "1.00 Pcs" のように単位付き文字列のことがあるため、数値部分だけを取り出す。
   const BALANCE_KEYS = ['Current balance', 'Total balance', 'Balance', 'Quantity', 'Qty'];
   function parseQty(raw: unknown): number {
@@ -47,8 +54,7 @@ export async function POST(req: NextRequest) {
 
   const itemsByNo = new Map<string, { item_no: string; part_name: string | null; balance: number }>();
   for (const row of rows) {
-    const location = String(row['Location'] ?? '').trim().toUpperCase();
-    if (location !== 'FLOOR') continue;
+    if (!isFloor(row)) continue;
 
     const itemNo = String(row['Part number'] ?? '').trim();
     const balanceKey = BALANCE_KEYS.find((k) => row[k] != null);
