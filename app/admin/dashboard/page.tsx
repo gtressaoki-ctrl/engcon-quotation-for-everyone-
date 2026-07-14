@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [setupResult, setSetupResult] = useState('');
   const [inventoryUploading, setInventoryUploading] = useState(false);
   const [inventoryResult, setInventoryResult] = useState('');
+  const [invMeta, setInvMeta] = useState<{ fileName: string | null; count: number | null; uploadedAt: string | null } | null>(null);
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
   const [detail, setDetail] = useState<{ quote: QuoteRecord; items: QuoteItem[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -28,7 +29,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     checkAuth();
     fetchQuotes();
+    fetchInvMeta();
   }, []);
+
+  async function fetchInvMeta() {
+    try {
+      const res = await fetch('/api/inventory-meta');
+      if (res.ok) setInvMeta(await res.json());
+    } catch { /* 表示だけなので握りつぶす */ }
+  }
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -114,7 +123,8 @@ export default function AdminDashboard() {
       });
       const json = await res.json();
       if (json.ok) {
-        setInventoryResult(`✓ 在庫データ更新完了: ${json.inserted}件`);
+        setInventoryResult(`✓ 在庫データ更新完了: ${json.inserted}件（${json.fileName ?? file.name}）`);
+        fetchInvMeta();
       } else {
         setInventoryResult(`✗ エラー: ${json.error}`);
       }
@@ -195,6 +205,22 @@ export default function AdminDashboard() {
       </header>
 
       <div className="p-6">
+        {/* 現在どのExcelを在庫に反映しているかを常時表示 */}
+        <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <span className="font-medium text-orange-800">反映中の在庫データ：</span>
+          {invMeta?.fileName ? (
+            <>
+              <span className="font-mono text-gray-800 break-all">{invMeta.fileName}</span>
+              <span className="text-gray-500">
+                （{invMeta.count ?? '—'}件
+                {invMeta.uploadedAt ? ` ／ ${new Date(invMeta.uploadedAt).toLocaleString('ja-JP')} 更新` : ''}）
+              </span>
+            </>
+          ) : (
+            <span className="text-gray-500">未取込（「在庫データ更新」からExcelをアップロードしてください）</span>
+          )}
+        </div>
+
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div>

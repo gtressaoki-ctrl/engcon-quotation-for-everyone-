@@ -20,7 +20,8 @@ export async function GET() {
     }
 
     for (const row of data ?? []) {
-      if (row.item_no) inventory[row.item_no] = Number(row.balance);
+      // '__meta__' はアップロード情報の予約行なので在庫としては扱わない
+      if (row.item_no && row.item_no !== '__meta__') inventory[row.item_no] = Number(row.balance);
     }
 
     if (!data || data.length < PAGE_SIZE) break;

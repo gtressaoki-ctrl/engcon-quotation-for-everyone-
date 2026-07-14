@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
   if (!(file instanceof Blob)) {
     return NextResponse.json({ error: 'file is required' }, { status: 400 });
   }
+  // アップロード元のファイル名（どのExcelを反映中か表示するため）
+  const fileName = (file as File).name || null;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -75,14 +77,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
 
+  const uploadedAt = new Date().toISOString();
   const BATCH = 500;
   let inserted = 0;
   for (let i = 0; i < items.length; i += BATCH) {
-    const batch = items.slice(i, i + BATCH).map((item) => ({ ...item, updated_at: new Date().toISOString() }));
+    const batch = items.slice(i, i + BATCH).map((item) => ({ ...item, updated_at: uploadedAt }));
     const { error } = await supabase.from('inventory').upsert(batch, { onConflict: 'item_no' });
     if (error) return NextResponse.json({ error: error.message, at: i }, { status: 500 });
     inserted += batch.length;
   }
 
-  return NextResponse.json({ ok: true, sheet: sheetName, inserted });
+  // 反映中のExcelファイル名・件数・日時をメタ行として記録（item_no='__meta__' の予約行）。
+  // 別テーブルを増やさず既存のinventoryテーブルに保存。読み取り側では在庫品番から除外する。
+  await supabase.from('inventory').upsert(
+    { item_no: '__meta__', part_name: fileName, balance: inserted, updated_at: uploadedAt },
+    { onConflict: 'item_no' }
+  );
+
+  return NextResponse.json({ ok: true, sheet: sheetName, inserted, fileName, uploadedAt });
 }
