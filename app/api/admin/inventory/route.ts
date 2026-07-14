@@ -33,13 +33,24 @@ export async function POST(req: NextRequest) {
 
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
 
+  // 在庫数の列は環境により表記ゆれがある（engcon標準は "Current balance"、旧仕様は "Total balance" 等）。
+  // 値も "1.00 Pcs" のように単位付き文字列のことがあるため、数値部分だけを取り出す。
+  const BALANCE_KEYS = ['Current balance', 'Total balance', 'Balance', 'Quantity', 'Qty'];
+  function parseQty(raw: unknown): number {
+    if (raw == null) return NaN;
+    if (typeof raw === 'number') return raw;
+    const m = String(raw).replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
+    return m ? parseFloat(m[0]) : NaN;
+  }
+
   const itemsByNo = new Map<string, { item_no: string; part_name: string | null; balance: number }>();
   for (const row of rows) {
     const location = String(row['Location'] ?? '').trim().toUpperCase();
     if (location !== 'FLOOR') continue;
 
     const itemNo = String(row['Part number'] ?? '').trim();
-    const balance = Number(row['Total balance']);
+    const balanceKey = BALANCE_KEYS.find((k) => row[k] != null);
+    const balance = parseQty(balanceKey ? row[balanceKey] : undefined);
     if (!itemNo || !Number.isFinite(balance)) continue;
 
     const partName = row['Part name'] != null ? String(row['Part name']).trim() : null;
