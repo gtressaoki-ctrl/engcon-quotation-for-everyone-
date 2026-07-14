@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const [setupResult, setSetupResult] = useState('');
   const [inventoryUploading, setInventoryUploading] = useState(false);
   const [inventoryResult, setInventoryResult] = useState('');
-  const [invMeta, setInvMeta] = useState<{ fileName: string | null; count: number | null; uploadedAt: string | null } | null>(null);
+  const [invMeta, setInvMeta] = useState<{ fileName: string | null; sheetName: string | null; count: number | null; uploadedAt: string | null } | null>(null);
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
   const [detail, setDetail] = useState<{ quote: QuoteRecord; items: QuoteItem[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -211,6 +211,9 @@ export default function AdminDashboard() {
           {invMeta?.fileName ? (
             <>
               <span className="font-mono text-gray-800 break-all">{invMeta.fileName}</span>
+              {invMeta.sheetName && (
+                <span className="text-gray-600">シート：<span className="font-mono">{invMeta.sheetName}</span></span>
+              )}
               <span className="text-gray-500">
                 （{invMeta.count ?? '—'}件
                 {invMeta.uploadedAt ? ` ／ ${new Date(invMeta.uploadedAt).toLocaleString('ja-JP')} 更新` : ''}）

@@ -87,10 +87,11 @@ export async function POST(req: NextRequest) {
     inserted += batch.length;
   }
 
-  // 反映中のExcelファイル名・件数・日時をメタ行として記録（item_no='__meta__' の予約行）。
-  // 別テーブルを増やさず既存のinventoryテーブルに保存。読み取り側では在庫品番から除外する。
+  // 反映中のExcelファイル名・シート名・件数・日時をメタ行として記録（item_no='__meta__' の予約行）。
+  // 別テーブルを増やさず既存のinventoryテーブルに保存（ファイル名+シート名はpart_nameにJSONで格納）。
+  // 読み取り側では在庫品番から除外する。
   await supabase.from('inventory').upsert(
-    { item_no: '__meta__', part_name: fileName, balance: inserted, updated_at: uploadedAt },
+    { item_no: '__meta__', part_name: JSON.stringify({ file: fileName, sheet: sheetName }), balance: inserted, updated_at: uploadedAt },
     { onConflict: 'item_no' }
   );
 
