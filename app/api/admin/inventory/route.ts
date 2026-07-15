@@ -33,6 +33,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'シートが見つかりません' }, { status: 400 });
   }
 
+  // 棚卸日（在庫がいつ時点か）を、シート名やファイル名の "as of 20260705" 等の8桁日付から推定する。
+  function extractAsOf(...texts: (string | null)[]): string | null {
+    for (const t of texts) {
+      if (!t) continue;
+      const m = t.match(/(20\d{2})[-/. ]?(\d{2})[-/. ]?(\d{2})/);
+      if (m) {
+        const [, y, mo, d] = m;
+        const mi = Number(mo), di = Number(d);
+        if (mi >= 1 && mi <= 12 && di >= 1 && di <= 31) return `${y}-${mo}-${d}`;
+      }
+    }
+    return null;
+  }
+  const asOf = extractAsOf(sheetName, fileName);
+
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
 
   // FLOOR（現物在庫）の判定に使う列は、出力形式により "Location" だったり "WH"（倉庫）だったりする。
@@ -97,7 +112,7 @@ export async function POST(req: NextRequest) {
   // 別テーブルを増やさず既存のinventoryテーブルに保存（ファイル名+シート名はpart_nameにJSONで格納）。
   // 読み取り側では在庫品番から除外する。
   await supabase.from('inventory').upsert(
-    { item_no: '__meta__', part_name: JSON.stringify({ file: fileName, sheet: sheetName }), balance: inserted, updated_at: uploadedAt },
+    { item_no: '__meta__', part_name: JSON.stringify({ file: fileName, sheet: sheetName, asOf }), balance: inserted, updated_at: uploadedAt },
     { onConflict: 'item_no' }
   );
 

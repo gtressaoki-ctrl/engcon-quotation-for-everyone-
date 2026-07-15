@@ -19,21 +19,24 @@ export async function GET() {
   if (!data) {
     return NextResponse.json({ fileName: null, sheetName: null, count: null, uploadedAt: null });
   }
-  // part_name には {file, sheet} のJSONを格納。旧データ（プレーンなファイル名）にも後方互換で対応。
+  // part_name には {file, sheet, asOf} のJSONを格納。旧データ（プレーンなファイル名）にも後方互換で対応。
   let fileName: string | null = data.part_name ?? null;
   let sheetName: string | null = null;
+  let asOf: string | null = null;
   if (data.part_name) {
     try {
       const parsed = JSON.parse(data.part_name);
       if (parsed && typeof parsed === 'object' && 'file' in parsed) {
         fileName = parsed.file ?? null;
         sheetName = parsed.sheet ?? null;
+        asOf = parsed.asOf ?? null;
       }
     } catch { /* 旧形式（プレーンなファイル名）はそのまま */ }
   }
   return NextResponse.json({
     fileName,
     sheetName,
+    asOf,
     count: data.balance ?? null,
     uploadedAt: data.updated_at ?? null,
   });

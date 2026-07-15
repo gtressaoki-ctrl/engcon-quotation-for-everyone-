@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import InventoryBadge from '@/components/InventoryBadge';
+import InventoryAsOfNote from '@/components/InventoryAsOfNote';
 
 interface PriceRow {
   item_no: string;
@@ -102,8 +103,9 @@ export default function PriceLookupPage() {
                   })}
                 </tbody>
               </table>
-              <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
-                {rows.length}件（最大100件）
+              <div className="px-4 py-2 border-t border-gray-100 flex flex-wrap justify-between gap-x-4 gap-y-1">
+                <InventoryAsOfNote />
+                <span className="text-xs text-gray-400">{rows.length}件（最大100件）</span>
               </div>
             </div>
           ) : (

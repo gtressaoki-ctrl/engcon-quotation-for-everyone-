@@ -6,6 +6,7 @@ import { calculateSalesPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
 import { ATTACHMENT_CATEGORIES, getStdNum } from '@/lib/attachmentCategories';
 import Stepper from '@/components/Stepper';
+import InventoryAsOfNote from '@/components/InventoryAsOfNote';
 import type { QuoteItem } from '@/types/quote';
 
 function parseBucketSize(description: string): string | null {
@@ -166,6 +167,7 @@ export default function Step6bVariants() {
   return (
     <div className="space-y-6">
       <p className="text-xs text-gray-500">S規格：<strong>{s_standard}</strong> に対応する品番を選択してください。<br />同じアタッチメントでも複数の品番を選択でき、それぞれ数量を指定できます。</p>
+      <InventoryAsOfNote />
 
       {loading ? (
         <p className="text-gray-500 text-sm">候補を読み込み中...</p>

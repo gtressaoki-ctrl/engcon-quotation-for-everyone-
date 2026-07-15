@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
 import InventoryBadge from '@/components/InventoryBadge';
+import InventoryAsOfNote from '@/components/InventoryAsOfNote';
 import Stepper from '@/components/Stepper';
 
 const EC_ITEM_MAP: Record<string, string> = {
@@ -358,6 +359,7 @@ export default function Step5ItemList() {
         <p className="text-gray-500">標準構成を読み込み中...</p>
       ) : (
         <>
+        <InventoryAsOfNote className="mb-1" />
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
