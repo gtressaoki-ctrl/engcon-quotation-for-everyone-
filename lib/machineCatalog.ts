@@ -259,7 +259,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'VOLVO', model: 'EC65', s_standard: 'S40', ec_primary: 'EC206B', dc: 'DC2' },
   { maker: 'VOLVO', model: 'EW65', s_standard: 'S40', ec_primary: 'EC206B', dc: 'DC2' },
   { maker: 'VOLVO', model: 'EWR130E', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
-  { maker: 'VOLVO', model: 'ECR88D', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'VOLVO', model: 'ECR88D', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
   { maker: 'VOLVO', model: 'ECR90', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'VOLVO', model: 'EC140E', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'VOLVO', model: 'EW140E', s_standard: 'S60', ec_primary: 'EC219', dc: 'DC2' },
