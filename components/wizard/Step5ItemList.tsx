@@ -13,9 +13,27 @@ import Stepper from '@/components/Stepper';
 const EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080111',
   EC206B: '1068693',
-  EC209B: '1067465',
+  EC209B: '1067465',  // 24V（EC209BS-QSM45Q-QS45-DC2-24V-H48-T51）
   EC214S: '1067444',
   EC226S: '1067394',
+};
+
+// 12V仕様のベースマシン一覧（電圧はベースマシン側で決まる。既定は24V、下記のみ12V）。
+// 追加の12V機種が判明したらここに追記する。model は部分一致（大文字・空白無視）。
+const TWELVE_VOLT_MACHINES: { maker: string; modelIncludes: string }[] = [
+  { maker: 'CAT', modelIncludes: '308' },      // CAT 308（8t級）
+  { maker: 'YANMAR', modelIncludes: 'SV100' }, // Yanmar SV100
+];
+function is12VMachine(maker: string, model: string): boolean {
+  const mk = (maker ?? '').toUpperCase();
+  const md = (model ?? '').toUpperCase().replace(/\s+/g, '');
+  return TWELVE_VOLT_MACHINES.some((m) => m.maker === mk && md.includes(m.modelIncludes));
+}
+
+// 12Vマシン用のチルトローテータ本体品番（SW）。24V既定(EC_ITEM_MAP)に対する上書き。
+// 現状12V品番が存在するのはS45(EC209B)のみ。S60以上に12Vは無い。
+const EC_ITEM_MAP_12V_SW: Record<string, string> = {
+  EC209B: '1067734',  // EC209BS-QSM45Q-QS45-DC2-12V-H48-T51
 };
 
 // ダイレクトマウント用：ECモデル別の直付け（Direct connect）チルトローテータ品番
@@ -185,8 +203,9 @@ export default function Step5ItemList() {
         ecItemNo = catalogEntry?.ec_item_no ?? dmDirect ?? EC_ITEM_MAP[ec_model];
       }
     } else {
-      // SW（サンドイッチ）
-      ecItemNo = EC_ITEM_MAP[ec_model];
+      // SW（サンドイッチ）。12Vのベースマシン（CAT308/SV100等）はECモデル別の12V品番を優先。
+      ecItemNo = (is12VMachine(machine_maker, machine_model) ? EC_ITEM_MAP_12V_SW[ec_model] : undefined)
+        ?? EC_ITEM_MAP[ec_model];
     }
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
     built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
