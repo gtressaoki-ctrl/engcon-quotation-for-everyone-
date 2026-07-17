@@ -10,7 +10,8 @@ import type { ExtraCost, QuoteItem } from '@/types/quote';
 const NON_PALLET_ITEM_NOS = new Set([
   '8001080', // CAT DC2/MIG2セット（NG 301-310）
   '8001221', // CAT DC2/MIG2セット（GC 313+）
-  '8002201', // QSCシステム
+  '8002200', // QSCシステム（QH4・8t以下）
+  '8002201', // QSCシステム（QH5・8t超）
   '8000271', // Qsafe
   '8001992', // DC3コントロールシステム
   '8002251', // DC3 QSCシステム

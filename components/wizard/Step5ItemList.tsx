@@ -66,7 +66,13 @@ const GRD_TYPE_HITCH_ITEM_NOS = new Set([
 // CAT専用：DC2/MIG2セット品番（308以下＝CAT NG 301-310 用 / 313以上GCシリーズ用）
 const CAT_DC2_SET_NG_301_310 = '8001080';
 const CAT_DC2_SET_GC_313_PLUS = '8001221';
-const CAT_DC2_QSC = '8002201';      // DC2 サンドイッチ用 QSC（EXTDC2-MAP30）
+// DC2・SW時のQSC品番はベースマシンの大きさ（S規格）で決まる。
+// 8t以下（S40/S45）はQH4=8002200、8t超（S60以上）はQH5=8002201。
+const DC2_QSC_QH4 = '8002200';      // EXTDC2-MAP30-QH4（8t以下用）
+const DC2_QSC_QH5 = '8002201';      // EXTDC2-MAP30-QH5（8t超用）
+function dc2QscItemNo(sStandard: string): string {
+  return (sStandard === 'S40' || sStandard === 'S45') ? DC2_QSC_QH4 : DC2_QSC_QH5;
+}
 const CAT_QSAFE = '8000271';        // Qsafe（Q-safe-QLM）。DM用
 const CAT_DC3_HARNESS = '8001992';  // DC3コントロールシステム（DC3-MAP4-eML-CAT-313-335NG）
 const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MAP32-QH5-CAT 313 NG）
@@ -237,8 +243,9 @@ export default function Step5ItemList() {
         const set = await lk(setNo);
         built.push(makeItem('DC2/MIG2セット', set.price, price_type, setNo, 1, set.description));
         if (mount_type === 'SW') {
-          const qsc = await lk(CAT_DC2_QSC);
-          built.push(makeItem('QSCシステム', qsc.price, price_type, CAT_DC2_QSC, 1, qsc.description));
+          const qscNo = dc2QscItemNo(s_standard);
+          const qsc = await lk(qscNo);
+          built.push(makeItem('QSCシステム', qsc.price, price_type, qscNo, 1, qsc.description));
         } else {
           const qs = await lk(CAT_QSAFE);
           built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
@@ -251,7 +258,7 @@ export default function Step5ItemList() {
         ['8002535', 'DC2コントロールシステム', 1],
         ['841528',  'MIG2', 1],
         ...(mount_type === 'SW'
-          ? [['8002201', 'QSCシステム', 1]]
+          ? [[dc2QscItemNo(s_standard), 'QSCシステム', 1]]
           : [['8000271', 'Qsafe', 1]]),
         ['540190',  'ホースプロテクション', 4],
       ] as [string, string, number][]) {
