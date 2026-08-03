@@ -15,6 +15,9 @@ export default function DealersPage() {
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loginCompany, setLoginCompany] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [accountMsg, setAccountMsg] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -23,7 +26,32 @@ export default function DealersPage() {
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) router.push('/admin');
+    if (!session) { router.push('/admin'); return; }
+    const meta = session.user?.user_metadata as { role?: string } | undefined;
+    if (meta?.role === 'dealer') router.push('/dealer/quotes');
+  }
+
+  async function issueAccount() {
+    if (!loginCompany.trim() || !loginPassword.trim()) {
+      setAccountMsg('会社名とパスワードを入力してください');
+      return;
+    }
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
+    if (!key) return;
+    setAccountMsg('発行中...');
+    const res = await fetch('/api/admin/dealer-accounts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ company: loginCompany.trim(), password: loginPassword.trim() }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setAccountMsg(json.updated ? '✓ パスワードを更新しました' : '✓ アカウントを発行しました');
+      setLoginCompany('');
+      setLoginPassword('');
+    } else {
+      setAccountMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
+    }
   }
 
   async function readError(res: Response): Promise<string> {
@@ -95,6 +123,25 @@ export default function DealersPage() {
 
       <div className="p-6 max-w-2xl">
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-1">ディーラーログインアカウント発行</h2>
+          <p className="text-xs text-gray-500 mb-3">
+            ディーラーは「会社名（株式会社などは不要）＋パスワード」でログインし、自分が作成した見積を見返せます。
+            同じ会社名で再発行するとパスワードを更新できます。
+          </p>
+          <div className="flex flex-wrap gap-3 items-center">
+            <input type="text" value={loginCompany} onChange={(e) => setLoginCompany(e.target.value)}
+              placeholder="会社名（例：ヤマノ）"
+              className="flex-1 min-w-[160px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
+            <input type="text" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
+              placeholder="パスワード（6文字以上）"
+              className="flex-1 min-w-[160px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
+            <button onClick={issueAccount} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm">発行 / 更新</button>
+          </div>
+          {accountMsg && <p className="text-xs text-gray-600 mt-2">{accountMsg}</p>}
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">ディーラー名リスト（見積作成時の候補）</h2>
           <div className="flex gap-3">
             <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addDealer()}

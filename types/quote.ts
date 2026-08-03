@@ -30,6 +30,7 @@ export interface WizardState {
   creator_company: string;
   creator_name: string;
   creator_email: string;
+  creator_user_id?: string;  // ログイン中のディーラーアカウントID（未ログイン時は未設定）
 
   client_type: ClientType;
   client_name: string;
@@ -85,6 +86,7 @@ export interface QuoteRecord {
   creator_type: CreatorType;
   creator_company: string;
   creator_name: string;
+  creator_user_id?: string;
   client_type: ClientType;
   client_name: string;
   machine_condition: MachineCondition;

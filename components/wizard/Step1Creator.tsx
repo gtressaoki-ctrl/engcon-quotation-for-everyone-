@@ -4,11 +4,28 @@ import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { getPriceType } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
+import { DEALER_ROLE } from '@/lib/dealerAuth';
 
 export default function Step1Creator() {
   const { quote_mode, creator_type, creator_company, creator_name, client_type, client_name, update, nextStep } =
     useWizardStore();
   const [adminSession, setAdminSession] = useState<boolean | null>(null);
+  const [dealerLocked, setDealerLocked] = useState(false);
+
+  // ディーラーとしてログイン済みなら、作成者を自分の会社に固定する
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const meta = session?.user?.user_metadata as { role?: string; company?: string } | undefined;
+      if (session && meta?.role === DEALER_ROLE) {
+        setDealerLocked(true);
+        update({
+          creator_type: 'dealer',
+          creator_company: meta.company ?? '',
+          creator_user_id: session.user.id,
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (creator_type === 'gtres') {
@@ -70,28 +87,30 @@ export default function Step1Creator() {
         </p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">種別</label>
-        <div className="flex gap-6">
-          {(['dealer', 'gtres'] as const).map((t) => (
-            <label key={t} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value={t}
-                checked={creator_type === t}
-                onChange={() =>
-                  update({
-                    creator_type: t,
-                    creator_company: t === 'gtres' ? '株式会社 G.TRES' : '',
-                  })
-                }
-                className="w-4 h-4 text-black"
-              />
-              <span>{t === 'gtres' ? 'G.TRES社員' : 'ディーラー'}</span>
-            </label>
-          ))}
+      {!dealerLocked && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">種別</label>
+          <div className="flex gap-6">
+            {(['dealer', 'gtres'] as const).map((t) => (
+              <label key={t} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value={t}
+                  checked={creator_type === t}
+                  onChange={() =>
+                    update({
+                      creator_type: t,
+                      creator_company: t === 'gtres' ? '株式会社 G.TRES' : '',
+                    })
+                  }
+                  className="w-4 h-4 text-black"
+                />
+                <span>{t === 'gtres' ? 'G.TRES社員' : 'ディーラー'}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {creator_type === 'gtres' && (
         <div className={`p-3 rounded-lg border text-sm ${adminSession ? 'bg-green-50 border-green-200 text-green-700' : 'bg-yellow-50 border-yellow-200 text-yellow-800'}`}>
@@ -110,6 +129,8 @@ export default function Step1Creator() {
         <label className="block text-sm font-medium text-gray-700 mb-1">会社名</label>
         {creator_type === 'gtres' ? (
           <p className="text-gray-800 font-medium py-2">株式会社 G.TRES（固定）</p>
+        ) : dealerLocked ? (
+          <p className="text-gray-800 font-medium py-2">{creator_company}（ログイン中）</p>
         ) : (
           <input
             type="text"

@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
         creator_type:     body.creator_type,
         creator_company:  body.creator_company,
         creator_name:     body.creator_name,
+        creator_user_id:  body.creator_user_id || null,
         client_type:      body.client_type,
         client_name:      body.client_name,
         machine_condition: body.machine_condition,
