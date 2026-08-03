@@ -41,7 +41,7 @@ export default function DealerLogin() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">会社名</label>
             <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} required
-              placeholder="例：ヤマノ（「株式会社」は不要）"
+              placeholder="例：G.TRES（「株式会社」は不要）"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
           </div>
           <div>

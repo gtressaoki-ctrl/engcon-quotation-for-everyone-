@@ -130,7 +130,7 @@ export default function DealersPage() {
           </p>
           <div className="flex flex-wrap gap-3 items-center">
             <input type="text" value={loginCompany} onChange={(e) => setLoginCompany(e.target.value)}
-              placeholder="会社名（例：ヤマノ）"
+              placeholder="会社名（例：G.TRES）"
               className="flex-1 min-w-[160px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
             <input type="text" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
               placeholder="パスワード（6文字以上）"
