@@ -15,6 +15,8 @@ const RAW_COMPANY_ALIASES: [string, string][] = [
   ['MSJ', 'ヤマノ'],          // MSJ はヤマノさん
   ['yamano', 'ヤマノ'],       // ローマ字表記
   ['ヤマノMSJ', 'ヤマノ'],    // 「(株)ヤマノ MSJ」等も正規化で ヤマノmsj に集約される
+  ['ギアトライム', 'GEARTRYM'], // ギアトライム＝GEARTRYM
+  ['リーサステツク', 'リーサステック'], // 見積側「リーサステツク」をアカウント名「リーサステック」へ
 ];
 const COMPANY_ALIASES: Record<string, string> = Object.fromEntries(
   RAW_COMPANY_ALIASES.map(([alias, canonical]) => [normalizeCompany(alias), normalizeCompany(canonical)])
