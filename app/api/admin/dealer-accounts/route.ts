@@ -3,8 +3,8 @@ import { createServiceClient } from '@/lib/supabase';
 import { dealerEmailFromCompany, DEALER_ROLE } from '@/lib/dealerAuth';
 
 function authorized(req: NextRequest): boolean {
-  const key = req.headers.get('x-admin-key');
-  return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = req.headers.get('x-admin-key')?.trim();
+  return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 }
 
 // ディーラーログインアカウント一覧

@@ -5,8 +5,8 @@ import { DEALER_ROLE, normalizeCompany } from '@/lib/dealerAuth';
 export const dynamic = 'force-dynamic';
 
 function authorized(req: NextRequest): boolean {
-  const key = req.headers.get('x-admin-key');
-  return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = req.headers.get('x-admin-key')?.trim();
+  return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 }
 
 // 会社名の別名。作成者会社が「別名（キー）」の見積は「正規会社名（値）」のアカウントに紐付ける。
