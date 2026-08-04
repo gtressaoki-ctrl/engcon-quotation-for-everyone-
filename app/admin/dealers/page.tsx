@@ -18,6 +18,7 @@ export default function DealersPage() {
   const [loginCompany, setLoginCompany] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [accountMsg, setAccountMsg] = useState('');
+  const [backfillMsg, setBackfillMsg] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -52,6 +53,37 @@ export default function DealersPage() {
     } else {
       setAccountMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
     }
+  }
+
+  // 既存見積（creator_user_id 未設定）を作成者会社名でアカウントに紐付ける。
+  // まずプレビュー（件数のみ）→ 確認 → 適用、の流れ。
+  async function backfillQuotes() {
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
+    if (!key) return;
+    setBackfillMsg('照合中...');
+    const preview = await fetch('/api/admin/backfill-quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ apply: false }),
+    });
+    const p = await preview.json().catch(() => ({}));
+    if (!preview.ok) { setBackfillMsg(`✗ ${p.error || `HTTP ${preview.status}`}`); return; }
+    const detail = (p.byCompany || []).map((c: { company: string; count: number }) => `・${c.company}: ${c.count}件`).join('\n');
+    const ok = confirm(
+      `未紐付けの見積 ${p.unlinkedQuotes} 件のうち、${p.matched} 件を会社名でアカウントに紐付けます。\n` +
+      `対象外：未一致 ${p.unmatched} 件 / 会社名重複 ${p.ambiguous} 件\n\n` +
+      `${detail || '（対象なし）'}\n\n適用しますか？`
+    );
+    if (!ok) { setBackfillMsg('キャンセルしました'); return; }
+    setBackfillMsg('適用中...');
+    const applyRes = await fetch('/api/admin/backfill-quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ apply: true }),
+    });
+    const a = await applyRes.json().catch(() => ({}));
+    if (applyRes.ok) setBackfillMsg(`✓ ${a.updated}件を紐付けました（未一致${a.unmatched}件は対象外）`);
+    else setBackfillMsg(`✗ ${a.error || `HTTP ${applyRes.status}`}`);
   }
 
   async function readError(res: Response): Promise<string> {
@@ -138,6 +170,17 @@ export default function DealersPage() {
             <button onClick={issueAccount} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm">発行 / 更新</button>
           </div>
           {accountMsg && <p className="text-xs text-gray-600 mt-2">{accountMsg}</p>}
+
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500 mb-2">
+              ログイン機能の導入前に作成された見積を、作成者会社名で各アカウントに紐付けます（既に紐付け済みの見積は変更しません）。
+              アカウントを発行してから実行してください。
+            </p>
+            <button onClick={backfillQuotes} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+              既存見積をアカウントに紐付け
+            </button>
+            {backfillMsg && <p className="text-xs text-gray-600 mt-2 whitespace-pre-wrap">{backfillMsg}</p>}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
