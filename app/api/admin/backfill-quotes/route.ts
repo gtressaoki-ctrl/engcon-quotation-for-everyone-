@@ -9,6 +9,16 @@ function authorized(req: NextRequest): boolean {
   return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
+// 会社名の別名。作成者会社が「別名（キー）」の見積は「正規会社名（値）」のアカウントに紐付ける。
+// 例：MSJ はヤマノさんの別名。追加の別名が出たらここに追記する。
+const COMPANY_ALIASES: Record<string, string> = {
+  [normalizeCompany('MSJ')]: normalizeCompany('ヤマノ'),
+};
+function resolveCompanyNorm(company: string): string {
+  const norm = normalizeCompany(company);
+  return COMPANY_ALIASES[norm] ?? norm;
+}
+
 // 既存見積（creator_user_id 未設定）を、作成者会社名でディーラーアカウントに紐付ける。
 // body.apply=false（既定）はプレビュー（件数のみ・DB更新なし）、true で実際に更新。
 // 会社名は normalizeCompany で正規化して照合。既に紐付いている見積は対象外（上書きしない）。
@@ -57,7 +67,7 @@ export async function POST(req: NextRequest) {
     let unmatched = 0;
     let ambiguousCount = 0;
     for (const q of nullQuotes) {
-      const norm = normalizeCompany(q.creator_company ?? '');
+      const norm = resolveCompanyNorm(q.creator_company ?? '');
       const dealer = norm ? byNorm.get(norm) : undefined;
       if (!dealer) { unmatched++; continue; }
       if (dealer.ambiguous) { ambiguousCount++; continue; }
