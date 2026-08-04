@@ -19,6 +19,8 @@ export default function DealersPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [accountMsg, setAccountMsg] = useState('');
   const [backfillMsg, setBackfillMsg] = useState('');
+  const [linkStatus, setLinkStatus] = useState<{ total: number; linked: number; unlinked: number; byDealer: { company: string; count: number }[] } | null>(null);
+  const [statusMsg, setStatusMsg] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -69,10 +71,14 @@ export default function DealersPage() {
     const p = await preview.json().catch(() => ({}));
     if (!preview.ok) { setBackfillMsg(`✗ ${p.error || `HTTP ${preview.status}`}`); return; }
     const detail = (p.byCompany || []).map((c: { company: string; count: number }) => `・${c.company}: ${c.count}件`).join('\n');
+    const unmatchedList = (p.unmatchedByCompany || []).map((c: { company: string; count: number }) => `・${c.company}: ${c.count}件`).join('\n');
+    const dealerList = (p.dealerCompanies || []).join('、');
     const ok = confirm(
       `未紐付けの見積 ${p.unlinkedQuotes} 件のうち、${p.matched} 件を会社名でアカウントに紐付けます。\n` +
       `対象外：未一致 ${p.unmatched} 件 / 会社名重複 ${p.ambiguous} 件\n\n` +
-      `${detail || '（対象なし）'}\n\n適用しますか？`
+      `【紐付け対象】\n${detail || '（対象なし）'}\n\n` +
+      `【未一致の作成者会社（上位）】\n${unmatchedList || '（なし）'}\n\n` +
+      `【発行済みアカウント】\n${dealerList || '（なし）'}\n\n適用しますか？`
     );
     if (!ok) { setBackfillMsg('キャンセルしました'); return; }
     setBackfillMsg('適用中...');
@@ -84,6 +90,18 @@ export default function DealersPage() {
     const a = await applyRes.json().catch(() => ({}));
     if (applyRes.ok) setBackfillMsg(`✓ ${a.updated}件を紐付けました（未一致${a.unmatched}件は対象外）`);
     else setBackfillMsg(`✗ ${a.error || `HTTP ${applyRes.status}`}`);
+  }
+
+  // 紐付け状況の確認（各アカウントに何件紐付いているか）
+  async function checkLinkStatus() {
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
+    if (!key) return;
+    setStatusMsg('確認中...');
+    setLinkStatus(null);
+    const res = await fetch('/api/admin/backfill-quotes', { headers: { 'x-admin-key': key } });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) { setLinkStatus(json); setStatusMsg(''); }
+    else setStatusMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
   }
 
   async function readError(res: Response): Promise<string> {
@@ -180,6 +198,44 @@ export default function DealersPage() {
               既存見積をアカウントに紐付け
             </button>
             {backfillMsg && <p className="text-xs text-gray-600 mt-2 whitespace-pre-wrap">{backfillMsg}</p>}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-sm font-semibold text-gray-700">紐付け状況チェック</h3>
+              <button onClick={checkLinkStatus} className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs">
+                状況を確認
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-2">各アカウントに紐付いている見積の件数を表示します。未紐付けが残っていれば別名の追加などで対応します。</p>
+            {statusMsg && <p className="text-xs text-gray-600">{statusMsg}</p>}
+            {linkStatus && (
+              <div className="text-xs text-gray-700">
+                <p className="mb-2">
+                  全 {linkStatus.total} 件中、<span className="text-green-700 font-medium">紐付け済み {linkStatus.linked} 件</span> ／{' '}
+                  <span className="text-red-600 font-medium">未紐付け {linkStatus.unlinked} 件</span>
+                </p>
+                <table className="w-full border border-gray-200 rounded">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600">
+                      <th className="text-left px-3 py-1.5">アカウント（会社名）</th>
+                      <th className="text-right px-3 py-1.5 whitespace-nowrap">紐付け見積数</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {linkStatus.byDealer.map((d) => (
+                      <tr key={d.company} className="border-t border-gray-100">
+                        <td className="px-3 py-1.5">{d.company || '（会社名なし）'}</td>
+                        <td className="px-3 py-1.5 text-right">{d.count}</td>
+                      </tr>
+                    ))}
+                    {linkStatus.byDealer.length === 0 && (
+                      <tr><td className="px-3 py-1.5 text-gray-400" colSpan={2}>アカウントがありません</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 

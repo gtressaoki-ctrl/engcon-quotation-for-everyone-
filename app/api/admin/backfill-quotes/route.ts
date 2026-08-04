@@ -19,6 +19,46 @@ function resolveCompanyNorm(company: string): string {
   return COMPANY_ALIASES[norm] ?? norm;
 }
 
+// 紐付け状況の確認。各ディーラーアカウントに何件の見積が紐付いているか、未紐付けが何件かを返す。
+export async function GET(req: NextRequest) {
+  if (!authorized(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  try {
+    const supabase = createServiceClient();
+
+    const { data: userList, error: userErr } = await supabase.auth.admin.listUsers({ perPage: 200 });
+    if (userErr) return NextResponse.json({ error: userErr.message }, { status: 500 });
+    const dealers = (userList.users || [])
+      .filter((u) => (u.user_metadata as { role?: string })?.role === DEALER_ROLE)
+      .map((u) => ({ id: u.id, company: (u.user_metadata as { company?: string })?.company ?? '' }));
+
+    const totalRes = await supabase.from('quotes').select('id', { count: 'exact', head: true });
+    if (totalRes.error) return NextResponse.json({ error: totalRes.error.message }, { status: 500 });
+    const total = totalRes.count ?? 0;
+
+    const unlinkedRes = await supabase.from('quotes').select('id', { count: 'exact', head: true }).is('creator_user_id', null);
+    if (unlinkedRes.error) return NextResponse.json({ error: unlinkedRes.error.message }, { status: 500 });
+    const unlinked = unlinkedRes.count ?? 0;
+
+    const byDealer: { company: string; count: number }[] = [];
+    for (const d of dealers) {
+      const r = await supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('creator_user_id', d.id);
+      if (r.error) return NextResponse.json({ error: r.error.message }, { status: 500 });
+      byDealer.push({ company: d.company, count: r.count ?? 0 });
+    }
+    byDealer.sort((a, b) => b.count - a.count);
+
+    return NextResponse.json({
+      ok: true,
+      total,
+      linked: total - unlinked,
+      unlinked,
+      byDealer,
+    });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
+}
+
 // 既存見積（creator_user_id 未設定）を、作成者会社名でディーラーアカウントに紐付ける。
 // body.apply=false（既定）はプレビュー（件数のみ・DB更新なし）、true で実際に更新。
 // 会社名は normalizeCompany で正規化して照合。既に紐付いている見積は対象外（上書きしない）。
@@ -64,12 +104,18 @@ export async function POST(req: NextRequest) {
     // 3. 会社名で照合
     const idsByUser = new Map<string, number[]>();
     const perCompany = new Map<string, { company: string; count: number }>();
+    const unmatchedNames = new Map<string, number>(); // 未一致の作成者会社名 -> 件数
     let unmatched = 0;
     let ambiguousCount = 0;
     for (const q of nullQuotes) {
       const norm = resolveCompanyNorm(q.creator_company ?? '');
       const dealer = norm ? byNorm.get(norm) : undefined;
-      if (!dealer) { unmatched++; continue; }
+      if (!dealer) {
+        unmatched++;
+        const label = (q.creator_company ?? '').trim() || '(空欄)';
+        unmatchedNames.set(label, (unmatchedNames.get(label) ?? 0) + 1);
+        continue;
+      }
       if (dealer.ambiguous) { ambiguousCount++; continue; }
       if (!idsByUser.has(dealer.id)) idsByUser.set(dealer.id, []);
       idsByUser.get(dealer.id)!.push(q.id);
@@ -107,6 +153,11 @@ export async function POST(req: NextRequest) {
       unmatched,
       ambiguous: ambiguousCount,
       byCompany: Array.from(perCompany.values()).sort((a, b) => b.count - a.count),
+      dealerCompanies: Array.from(byNorm.values()).map((d) => d.company).sort(),
+      unmatchedByCompany: Array.from(unmatchedNames.entries())
+        .map(([company, count]) => ({ company, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 40),
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
