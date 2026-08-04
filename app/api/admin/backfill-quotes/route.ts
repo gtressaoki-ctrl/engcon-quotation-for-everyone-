@@ -9,11 +9,16 @@ function authorized(req: NextRequest): boolean {
   return !!key && key === process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 }
 
-// 会社名の別名。作成者会社が「別名（キー）」の見積は「正規会社名（値）」のアカウントに紐付ける。
-// 例：MSJ はヤマノさんの別名。追加の別名が出たらここに追記する。
-const COMPANY_ALIASES: Record<string, string> = {
-  [normalizeCompany('MSJ')]: normalizeCompany('ヤマノ'),
-};
+// 会社名の別名。作成者会社が「別名（左）」の見積は「正規会社名（右）」のアカウントに紐付ける。
+// 表記揺れ（ローマ字・MSJ併記など）を吸収する。追加の同一会社が出たらここに1行追記する。
+const RAW_COMPANY_ALIASES: [string, string][] = [
+  ['MSJ', 'ヤマノ'],          // MSJ はヤマノさん
+  ['yamano', 'ヤマノ'],       // ローマ字表記
+  ['ヤマノMSJ', 'ヤマノ'],    // 「(株)ヤマノ MSJ」等も正規化で ヤマノmsj に集約される
+];
+const COMPANY_ALIASES: Record<string, string> = Object.fromEntries(
+  RAW_COMPANY_ALIASES.map(([alias, canonical]) => [normalizeCompany(alias), normalizeCompany(canonical)])
+);
 function resolveCompanyNorm(company: string): string {
   const norm = normalizeCompany(company);
   return COMPANY_ALIASES[norm] ?? norm;
