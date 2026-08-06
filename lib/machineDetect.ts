@@ -28,15 +28,26 @@ export interface DetectedMachineSpec {
   source: DetectSource;
 }
 
+// KOMATSUのDC3例外機種かどうか
+function isKomatsuDc3(maker: string, model: string): boolean {
+  return maker.toUpperCase() === 'KOMATSU' &&
+    KOMATSU_DC3_MODELS.some((m) => m.toLowerCase() === model.toLowerCase());
+}
+
 // 機種名からS規格・ECモデル・DCシステムを判定する（STEP3の自動判定ロジック本体）。
 // 返り値はウィザードstateへそのまま適用できる差分。判定できなかった項目は undefined。
 export function detectMachineSpec(maker: string, model: string): DetectedMachineSpec {
-  // KOMATSUのDC3例外機種（S規格・ECは触らずDCのみDC3にする）
-  if (maker.toUpperCase() === 'KOMATSU' &&
-    KOMATSU_DC3_MODELS.some((m) => m.toLowerCase() === model.toLowerCase())) {
-    return { dc_system: 'DC3', source: 'komatsu-dc3' };
-  }
+  const spec = detectBaseSpec(maker, model);
 
+  // DC3例外機種はDCだけを上書きする。
+  // S規格・ECはマスタ／推定の結果をそのまま使う（ここで打ち切ると既定値S60のままになる）。
+  if (isKomatsuDc3(maker, model)) {
+    return { ...spec, dc_system: 'DC3', source: 'komatsu-dc3' };
+  }
+  return spec;
+}
+
+function detectBaseSpec(maker: string, model: string): DetectedMachineSpec {
   // MACHINE_CATALOG（機種別の実品番あり）を優先し、次に MACHINE_LIST で自動判定
   const catalogEntry = findMachineCatalogEntry(maker, model);
   if (catalogEntry) {

@@ -67,46 +67,47 @@ interface Scenario {
   mount: MountType;
   registered: boolean;         // カタログ／リストに登録済みの機種か（期待値）
   expectDC?: DCSystem;         // 人手で確定している期待DC（分かっているものだけ）
+  expectS?: SStandard;         // 人手で確定している期待S規格（分かっているものだけ）
   expectVolt?: '12V' | '24V';  // 確定している期待電圧（分かっているものだけ）
   voltKnown: boolean;          // 電圧が確定情報かどうか
 }
 
 const SCENARIOS: Scenario[] = [
   // ── CAT（登録済み・非登録／SW・DM／DC2・DC3／12V・24V）
-  { no: 1,  label: 'CAT 315GC / SW（登録・DC2）',            maker: 'CAT',      model: '315GC',        mount: 'SW', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 2,  label: 'CAT 315GC / DM（登録・DC2）',            maker: 'CAT',      model: '315GC',        mount: 'DM', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 3,  label: 'CAT 315-7 / SW（登録・DC3）',            maker: 'CAT',      model: '315-7',        mount: 'SW', registered: true,  expectDC: 'DC3', expectVolt: '24V', voltKnown: true },
-  { no: 4,  label: 'CAT 315-7 / DM（登録・DC3）',            maker: 'CAT',      model: '315-7',        mount: 'DM', registered: true,  expectDC: 'DC3', expectVolt: '24V', voltKnown: true },
-  { no: 5,  label: 'CAT 308SR / SW（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'SW', registered: true,  expectDC: 'DC2', expectVolt: '12V', voltKnown: true },
-  { no: 6,  label: 'CAT 308SR / DM（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'DM', registered: true,  expectDC: 'DC2', expectVolt: '12V', voltKnown: true },
-  { no: 7,  label: 'CAT 336-07 / SW（登録・DC3・S80）',      maker: 'CAT',      model: '336-07',       mount: 'SW', registered: true,  expectDC: 'DC3', expectVolt: '24V', voltKnown: true },
-  { no: 8,  label: 'CAT 330 / DM（リストのみ・S80・DC3）',   maker: 'CAT',      model: '330',          mount: 'DM', registered: true,  expectDC: 'DC3', voltKnown: false },
+  { no: 1,  label: 'CAT 315GC / SW（登録・DC2）',            maker: 'CAT',      model: '315GC',        mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 2,  label: 'CAT 315GC / DM（登録・DC2）',            maker: 'CAT',      model: '315GC',        mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 3,  label: 'CAT 315-7 / SW（登録・DC3）',            maker: 'CAT',      model: '315-7',        mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 4,  label: 'CAT 315-7 / DM（登録・DC3）',            maker: 'CAT',      model: '315-7',        mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 5,  label: 'CAT 308SR / SW（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
+  { no: 6,  label: 'CAT 308SR / DM（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
+  { no: 7,  label: 'CAT 336-07 / SW（登録・DC3・S80）',      maker: 'CAT',      model: '336-07',       mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S80', expectVolt: '24V', voltKnown: true },
+  { no: 8,  label: 'CAT 330 / DM（リストのみ・S80・DC3）',   maker: 'CAT',      model: '330',          mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S80', voltKnown: false },
   { no: 9,  label: 'VOLVO ECR88D / SW（登録・マスタ間S規格差）', maker: 'VOLVO',  model: 'ECR88D',       mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
   { no: 10, label: 'CAT 312E / SW（非登録・推定）',          maker: 'CAT',      model: '312E',         mount: 'SW', registered: false, voltKnown: false },
   // ── KOMATSU
-  { no: 11, label: 'KOMATSU PC138US-11 / SW（登録）',        maker: 'KOMATSU',  model: 'PC138US-11',   mount: 'SW', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 12, label: 'KOMATSU PC138US-11 / DM（登録）',        maker: 'KOMATSU',  model: 'PC138US-11',   mount: 'DM', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 13, label: 'KOMATSU PC200i-12 / SW（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'SW', registered: true,  expectDC: 'DC3', voltKnown: false },
-  { no: 14, label: 'KOMATSU PC200i-12 / DM（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'DM', registered: true,  expectDC: 'DC3', voltKnown: false },
-  { no: 15, label: 'KOMATSU PC78US-10 / DM（登録）',         maker: 'KOMATSU',  model: 'PC78US-10',    mount: 'DM', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
+  { no: 11, label: 'KOMATSU PC138US-11 / SW（登録）',        maker: 'KOMATSU',  model: 'PC138US-11',   mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 12, label: 'KOMATSU PC138US-11 / DM（登録）',        maker: 'KOMATSU',  model: 'PC138US-11',   mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 13, label: 'KOMATSU PC200i-12 / SW（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S70', voltKnown: false },
+  { no: 14, label: 'KOMATSU PC200i-12 / DM（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S70', voltKnown: false },
+  { no: 15, label: 'KOMATSU PC78US-10 / DM（登録）',         maker: 'KOMATSU',  model: 'PC78US-10',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '24V', voltKnown: true },
   { no: 16, label: 'KOMATSU PC88MR-11 / SW（非登録）',       maker: 'KOMATSU',  model: 'PC88MR-11',    mount: 'SW', registered: false, voltKnown: false },
   // ── HITACHI
-  { no: 17, label: 'HITACHI ZX135US-7 / SW（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'SW', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 18, label: 'HITACHI ZX135US-7 / DM（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'DM', registered: true,  expectDC: 'DC2', expectVolt: '24V', voltKnown: true },
-  { no: 19, label: 'HITACHI ZX225US-7 / SW（リストのみ）',   maker: 'HITACHI',  model: 'ZX225US-7',    mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
+  { no: 17, label: 'HITACHI ZX135US-7 / SW（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 18, label: 'HITACHI ZX135US-7 / DM（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
+  { no: 19, label: 'HITACHI ZX225US-7 / SW（リストのみ）',   maker: 'HITACHI',  model: 'ZX225US-7',    mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S70', voltKnown: false },
   { no: 20, label: 'HITACHI ZX85USB-7 / DM（非登録）',       maker: 'HITACHI',  model: 'ZX85USB-7',    mount: 'DM', registered: false, voltKnown: false },
   // ── SUMITOMO
-  { no: 21, label: 'SUMITOMO SH135X-7 / SW（登録）',         maker: 'SUMITOMO', model: 'SH135X-7',     mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
-  { no: 22, label: 'SUMITOMO SH200-7 / DM（登録）',          maker: 'SUMITOMO', model: 'SH200-7',      mount: 'DM', registered: true,  expectDC: 'DC2', voltKnown: false },
+  { no: 21, label: 'SUMITOMO SH135X-7 / SW（登録）',         maker: 'SUMITOMO', model: 'SH135X-7',     mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', voltKnown: false },
+  { no: 22, label: 'SUMITOMO SH200-7 / DM（登録）',          maker: 'SUMITOMO', model: 'SH200-7',      mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S70', voltKnown: false },
   { no: 23, label: 'SUMITOMO SH145X-8 / SW（非登録）',       maker: 'SUMITOMO', model: 'SH145X-8',     mount: 'SW', registered: false, voltKnown: false },
   // ── KOBELCO
-  { no: 24, label: 'KOBELCO SK75SR-7 / SW（登録）',          maker: 'KOBELCO',  model: 'SK75SR-7',     mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
-  { no: 25, label: 'KOBELCO SK135SR-7 / DM（登録）',         maker: 'KOBELCO',  model: 'SK135SR-7',    mount: 'DM', registered: true,  expectDC: 'DC2', voltKnown: false },
+  { no: 24, label: 'KOBELCO SK75SR-7 / SW（登録）',          maker: 'KOBELCO',  model: 'SK75SR-7',     mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', voltKnown: false },
+  { no: 25, label: 'KOBELCO SK135SR-7 / DM（登録）',         maker: 'KOBELCO',  model: 'SK135SR-7',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', voltKnown: false },
   { no: 26, label: 'KOBELCO SK17SR-7 / SW（非登録・S30級）', maker: 'KOBELCO',  model: 'SK17SR-7',     mount: 'SW', registered: false, voltKnown: false },
   // ── KUBOTA / YANMAR / KATO / VOLVO / その他
-  { no: 27, label: 'KUBOTA KX080-4S2 / SW（リストのみ）',    maker: 'KUBOTA',   model: 'KX080-4S2',    mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
-  { no: 28, label: 'YANMAR Vio80/SV100 / SW（カタログ登録・12V確定）', maker: 'YANMAR', model: 'Vio80/SV100', mount: 'SW', registered: true, expectDC: 'DC2', expectVolt: '12V', voltKnown: true },
-  { no: 29, label: 'KATO HD512-7 / SW（リストのみ）',        maker: 'KATO',     model: 'HD512-7',      mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
+  { no: 27, label: 'KUBOTA KX080-4S2 / SW（リストのみ）',    maker: 'KUBOTA',   model: 'KX080-4S2',    mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', voltKnown: false },
+  { no: 28, label: 'YANMAR Vio80/SV100 / SW（カタログ登録・12V確定）', maker: 'YANMAR', model: 'Vio80/SV100', mount: 'SW', registered: true, expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
+  { no: 29, label: 'KATO HD512-7 / SW（リストのみ）',        maker: 'KATO',     model: 'HD512-7',      mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', voltKnown: false },
   { no: 30, label: 'その他 IHI35N / SW（メーカー外・推定）', maker: 'その他',   model: 'IHI35N',       mount: 'SW', registered: false, voltKnown: false },
 ];
 
@@ -205,7 +206,10 @@ function runScenario(sc: Scenario): RunResult {
     f.push({ sev: 'WARN', code: 'NO_ESTIMATE', msg: '型式から番手を読めずS規格の自動判定不可（既定S60のまま進む）' });
   }
 
-  // 2) DC判定の期待値照合
+  // 2) S規格・DC判定の期待値照合
+  if (sc.expectS && state.s_standard !== sc.expectS) {
+    f.push({ sev: 'NG', code: 'S_JUDGE', msg: `S規格の判定が期待と不一致: 期待 ${sc.expectS} / 実際 ${state.s_standard}` });
+  }
   if (sc.expectDC && state.dc_system !== sc.expectDC) {
     f.push({ sev: 'NG', code: 'DC_JUDGE', msg: `DC判定が期待と不一致: 期待 ${sc.expectDC} / 実際 ${state.dc_system}` });
   }
