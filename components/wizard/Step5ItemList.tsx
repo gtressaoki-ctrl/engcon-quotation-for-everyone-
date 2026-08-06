@@ -5,6 +5,7 @@ import { useWizardStore } from '@/lib/wizardStore';
 import { calculateSalesPrice, calculateRsmCustomerPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
 import { buildStandardItemSpecs } from '@/lib/standardItems';
+import { sClassMismatchNote, sClassMismatchShort } from '@/lib/itemChecks';
 import type { QuoteItem, PriceType } from '@/types/quote';
 import InventoryBadge from '@/components/InventoryBadge';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
@@ -155,6 +156,27 @@ export default function Step5ItemList() {
         <p className="text-gray-500">標準構成を読み込み中...</p>
       ) : (
         <>
+        {(() => {
+          const mismatched = items
+            .map((it, i) => ({ i, item: it, note: it.is_custom ? null : sClassMismatchNote(it.name_ja, s_standard) }))
+            .filter((x) => x.note);
+          if (mismatched.length === 0) return null;
+          return (
+            <div className="border border-red-300 bg-red-50 rounded-lg p-3 text-sm">
+              <p className="font-medium text-red-700">
+                選択中のS規格（{s_standard}）と品番が一致しない品目が {mismatched.length} 件あります
+              </p>
+              <ul className="mt-1 space-y-0.5 text-red-700">
+                {mismatched.map((x) => (
+                  <li key={x.i}>・{x.item.item_no ?? '—'}　{x.item.name_ja}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-red-600 text-xs">
+                S規格・ECモデルの選択（STEP4）か品番をご確認ください。品番は下の「品番で追加」から差し替えできます。
+              </p>
+            </div>
+          );
+        })()}
         <InventoryAsOfNote className="mb-1" />
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm border-collapse">
@@ -178,7 +200,10 @@ export default function Step5ItemList() {
             </thead>
             <tbody>
               {items.map((item, i) => (
-                <tr key={i} className={`hover:bg-gray-50 ${item.list_price == null && !item.is_custom ? 'bg-yellow-50' : ''}`}>
+                <tr key={i} className={`hover:bg-gray-50 ${
+                  !item.is_custom && sClassMismatchNote(item.name_ja, s_standard) ? 'bg-red-50'
+                    : item.list_price == null && !item.is_custom ? 'bg-yellow-50' : ''
+                }`}>
                   <td className="border border-gray-200 px-2 py-1">
                     {item.is_custom ? (
                       <input type="text" value={item.name_ja}
@@ -186,6 +211,11 @@ export default function Step5ItemList() {
                         className="w-full border-0 focus:outline-none focus:ring-1 focus:ring-black rounded px-1" />
                     ) : (
                       <span>{item.name_ja}</span>
+                    )}
+                    {!item.is_custom && sClassMismatchShort(item.name_ja, s_standard) && (
+                      <span className="ml-1 whitespace-nowrap text-xs text-red-600 font-medium">
+                        ⚠ {sClassMismatchShort(item.name_ja, s_standard)}
+                      </span>
                     )}
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-xs text-gray-500">
@@ -232,7 +262,10 @@ export default function Step5ItemList() {
         {/* モバイル：品目カード */}
         <div className="md:hidden space-y-3">
           {items.map((item, i) => (
-            <div key={i} className={`border rounded-lg p-3 space-y-2 ${item.list_price == null && !item.is_custom ? 'bg-yellow-50 border-yellow-200' : 'border-gray-200'}`}>
+            <div key={i} className={`border rounded-lg p-3 space-y-2 ${
+              !item.is_custom && sClassMismatchNote(item.name_ja, s_standard) ? 'bg-red-50 border-red-200'
+                : item.list_price == null && !item.is_custom ? 'bg-yellow-50 border-yellow-200' : 'border-gray-200'
+            }`}>
               <div className="flex justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   {item.is_custom ? (
@@ -241,6 +274,9 @@ export default function Step5ItemList() {
                       className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black" />
                   ) : (
                     <p className="text-sm font-medium break-words">{item.name_ja}</p>
+                  )}
+                  {!item.is_custom && sClassMismatchNote(item.name_ja, s_standard) && (
+                    <p className="text-xs text-red-600 mt-0.5">⚠ {sClassMismatchNote(item.name_ja, s_standard)}</p>
                   )}
                   <p className="font-mono text-xs text-gray-500 mt-0.5">{item.item_no ?? '—'}</p>
                 </div>

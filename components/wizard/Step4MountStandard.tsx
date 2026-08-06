@@ -7,7 +7,7 @@ import type { SStandard } from '@/types/quote';
 const EC_MODELS: Record<SStandard, string[]> = {
   S30: ['EC204B'],
   S40: ['EC204B', 'EC206B'],
-  S45: ['EC206B', 'EC209B'],
+  S45: ['EC209B'],            // EC206BはS40（QSM40）用。S45には使わない
   S60: ['EC214S', 'EC219'],
   S70: ['EC226S'],
   S80: ['EC226S', 'EC233'],

@@ -14,6 +14,7 @@ import { detectMachineSpec, DC2_AUTO_MAKERS } from '../lib/machineDetect';
 import { buildStandardItemSpecs, is12VMachine } from '../lib/standardItems';
 import { getMachineListEntry, findMachineCatalogEntry } from '../lib/machineCatalog';
 import { calculateSalesPrice } from '../lib/pricing';
+import { isSClassMismatch, sClassTokens } from '../lib/itemChecks';
 import type { MountType, SStandard, DCSystem } from '../types/quote';
 
 // ---------- price_master ----------
@@ -52,7 +53,7 @@ const PRICES = loadPriceMaster();
 const EC_MODELS: Record<SStandard, string[]> = {
   S30: ['EC204B'],
   S40: ['EC204B', 'EC206B'],
-  S45: ['EC206B', 'EC209B'],
+  S45: ['EC209B'],
   S60: ['EC214S', 'EC219'],
   S70: ['EC226S'],
   S80: ['EC226S', 'EC233'],
@@ -272,12 +273,11 @@ function runScenario(sc: Scenario): RunResult {
     f.push({ sev: 'NG', code: 'QSC_CLASS', msg: 'S30（3t未満）なのにQSCが8t超用のQH5(8002201)。QH4(8002200)が正しいはず' });
   }
 
-  // 5) S規格整合（品名のQSM/QSD/QSトークン）
-  const want = sNum(state.s_standard);
+  // 5) S規格整合（画面警告と同じ lib/itemChecks.ts の判定を使う）
   for (const it of items) {
-    const bad = it.sTokens.filter((n) => n !== want && !(want === 30 && n === 40));
-    if (bad.length > 0 && it.role !== 'hitch') {
-      f.push({ sev: 'NG', code: 'S_MISMATCH', msg: `${it.role} ${it.item_no}「${it.name}」は S${bad.join('/')} 用（選択は ${state.s_standard}）` });
+    if (isSClassMismatch(it.name, state.s_standard)) {
+      const tk = Array.from(new Set(sClassTokens(it.name)));
+      f.push({ sev: 'NG', code: 'S_MISMATCH', msg: `${it.role} ${it.item_no}「${it.name}」は S${tk.join('/')} 用（選択は ${state.s_standard}）` });
     }
   }
 
