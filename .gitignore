@@ -36,3 +36,6 @@ next-env.d.ts
 
 # supabase
 supabase/.temp/
+
+# 使用テストの出力（スクリーンショット等）
+.usage-test/

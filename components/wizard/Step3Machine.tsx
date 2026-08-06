@@ -2,26 +2,9 @@
 
 import { useWizardStore } from '@/lib/wizardStore';
 import { getCatalogModels, getMachineListEntry, findMachineCatalogEntry, fuzzyMachineListEntry } from '@/lib/machineCatalog';
+import { detectMachineSpec, DC2_AUTO_MAKERS } from '@/lib/machineDetect';
 
 const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'YANMAR', 'KATO', 'VOLVO', 'その他'];
-
-// These makers always use DC2
-const DC2_AUTO_MAKERS = ['KOMATSU', 'KUBOTA', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'YANMAR', 'KATO'];
-
-// KOMATSU models that are DC3 (exceptions to DC2 rule)
-const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12'];
-
-// item_no -> EC機種名 の逆引き（MACHINE_CATALOG の ec_item_no から ec_model を推定するため）
-const ITEM_NO_TO_EC: Record<string, string> = {
-  '1080111': 'EC204B',
-  '1068693': 'EC206B',
-  '1067465': 'EC209B',
-  '1067444': 'EC214S',
-  '1067394': 'EC226S',
-  // S40 直付け品番（DM）からのデフォルトECモデル逆引き
-  '1080310': 'EC204B',  // 3〜4.5t級
-  '1084265': 'EC206B',  // 5t級
-};
 
 export default function Step3Machine() {
   const {
@@ -50,47 +33,10 @@ export default function Step3Machine() {
     applyModelLookup(model);
   }
 
-  // モデル名からS規格・DCシステムを自動判定して反映する（カタログ一致時のみ）
+  // モデル名からS規格・ECモデル・DCシステムを自動判定して反映する
   function applyModelLookup(model: string) {
-    // KOMATSU DC3 exception models
-    if (machine_maker.toUpperCase() === 'KOMATSU' &&
-      KOMATSU_DC3_MODELS.some((m) => m.toLowerCase() === model.toLowerCase())) {
-      update({ machine_model: model, dc_system: 'DC3' });
-      return;
-    }
-
-    // Try MACHINE_CATALOG first (has exact item numbers), then MACHINE_LIST for auto-detection
-    const catalogEntry = findMachineCatalogEntry(machine_maker, model);
-    if (catalogEntry) {
-      const updates: Parameters<typeof update>[0] = {
-        machine_model: model, s_standard: catalogEntry.s_standard, dc_system: catalogEntry.dc,
-      };
-      // ec_item_no からEC機種名を逆引きできれば反映、できなければ MACHINE_LIST の ec_primary を流用
-      if (catalogEntry.ec_item_no && ITEM_NO_TO_EC[catalogEntry.ec_item_no]) {
-        updates.ec_model = ITEM_NO_TO_EC[catalogEntry.ec_item_no];
-      } else {
-        const fallbackEntry = getMachineListEntry(machine_maker, model);
-        if (fallbackEntry) updates.ec_model = fallbackEntry.ec_primary;
-      }
-      update(updates);
-      return;
-    }
-
-    const listEntry = getMachineListEntry(machine_maker, model);
-    if (listEntry) {
-      update({ machine_model: model, s_standard: listEntry.s_standard, dc_system: listEntry.dc, ec_model: listEntry.ec_primary });
-      return;
-    }
-
-    // リスト完全一致なし：型式の番手からS規格・ECを推定（DCはDC2固定）
-    const fuzzy = fuzzyMachineListEntry(machine_maker, model);
-    if (fuzzy) {
-      update({ machine_model: model, s_standard: fuzzy.s_standard, dc_system: 'DC2', ec_model: fuzzy.ec_primary });
-      return;
-    }
-
-    // 推定もできない：機種名のみ反映（S規格は手動確認が必要）
-    update({ machine_model: model });
+    const { source, ...spec } = detectMachineSpec(machine_maker, model);
+    update({ machine_model: model, ...spec });
   }
 
   function handleCustomModelChange(value: string) {
