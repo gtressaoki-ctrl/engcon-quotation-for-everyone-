@@ -81,7 +81,8 @@ const GRD_TYPE_HITCH_ITEM_NOS = new Set([
   '1057282', // GRD60Q-QSD60/QSM60-engcon black
 ]);
 
-// CAT専用：DC2/MIG2セット品番（308以下＝CAT NG 301-310 用 / 313以上GCシリーズ用）
+// CAT専用：DC2/MIG2セット品番（-07シリーズ用 / 313以上GCシリーズ用）
+// ※Eシリーズ以前は専用セットを使わず基本DC2（8002535+841528）を使用する
 const CAT_DC2_SET_NG_301_310 = '8001080';
 const CAT_DC2_SET_GC_313_PLUS = '8001221';
 // DC2・SW時のQSC品番はベースマシンの大きさ（S規格）で決まる。
@@ -257,10 +258,23 @@ export default function Step5ItemList() {
           noteAdditions.push(CAT_DEALER_NOTE);
         }
       } else {
-        // 308以下、または313以上GCシリーズ：DC2/MIG2構成
-        const setNo = (size != null && size >= 313 && isGC) ? CAT_DC2_SET_GC_313_PLUS : CAT_DC2_SET_NG_301_310;
-        const set = await lk(setNo);
-        built.push(makeItem('DC2/MIG2セット', set.price, price_type, setNo, 1, set.description));
+        // DC2構成のコントロール系品目。CATの世代で使う品番が変わる。
+        //  ・GCシリーズ（313以上）: 専用セット 8001221
+        //  ・-07シリーズ（305-07, 308-07 等・型式に -07/-7 を含む）: CAT専用セット 8001080
+        //  ・Eシリーズ以前（312E, 308SR 等）: 基本DC2（8002535 コントロール ＋ 841528 MIG2）
+        const isNewSeries = /-0?7/.test(machine_model);
+        if (size != null && size >= 313 && isGC) {
+          const set = await lk(CAT_DC2_SET_GC_313_PLUS);
+          built.push(makeItem('DC2/MIG2セット', set.price, price_type, CAT_DC2_SET_GC_313_PLUS, 1, set.description));
+        } else if (isNewSeries) {
+          const set = await lk(CAT_DC2_SET_NG_301_310);
+          built.push(makeItem('DC2/MIG2セット', set.price, price_type, CAT_DC2_SET_NG_301_310, 1, set.description));
+        } else {
+          const ctrl = await lk('8002535');
+          built.push(makeItem('DC2コントロールシステム', ctrl.price, price_type, '8002535', 1, ctrl.description));
+          const mig = await lk('841528');
+          built.push(makeItem('MIG2', mig.price, price_type, '841528', 1, mig.description));
+        }
         if (mount_type === 'SW') {
           const qscNo = dc2QscItemNo(s_standard);
           const qsc = await lk(qscNo);
