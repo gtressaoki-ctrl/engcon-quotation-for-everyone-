@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { calculateSalesPrice, calculateRsmCustomerPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
-import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
+import { lookupCatalog, fuzzyLookupCatalog, getCatalogModels } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
 import InventoryBadge from '@/components/InventoryBadge';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
@@ -260,9 +260,13 @@ export default function Step5ItemList() {
       } else {
         // DC2構成のコントロール系品目。CATの世代で使う品番が変わる。
         //  ・GCシリーズ（313以上）: 専用セット 8001221
-        //  ・-07シリーズ（305-07, 308-07 等・型式に -07/-7 を含む）: CAT専用セット 8001080
-        //  ・Eシリーズ以前（312E, 308SR 等）: 基本DC2（8002535 コントロール ＋ 841528 MIG2）
-        const isNewSeries = /-0?7/.test(machine_model);
+        //  ・-07シリーズ: CAT専用セット 8001080
+        //  ・Eシリーズ以前（機種名を直接入力した非-07機のみ）: 基本DC2（8002535 コントロール ＋ 841528 MIG2）
+        // ドロップダウンで選べるCAT機種は全て-07世代なので、カタログ機種は-07扱い。
+        // 直接入力（カタログ外）で型式に -07/-7 も含まない場合のみ基本DC2にする。
+        const normModel = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+        const isCatalogCat = getCatalogModels('CAT').some((m) => normModel(m) === normModel(machine_model));
+        const isNewSeries = isCatalogCat || /-0?7/.test(machine_model);
         if (size != null && size >= 313 && isGC) {
           const set = await lk(CAT_DC2_SET_GC_313_PLUS);
           built.push(makeItem('DC2/MIG2セット', set.price, price_type, CAT_DC2_SET_GC_313_PLUS, 1, set.description));
