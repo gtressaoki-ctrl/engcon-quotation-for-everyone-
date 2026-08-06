@@ -17,6 +17,9 @@ const args = process.argv.slice(2);
 const argOf = (k, d) => { const i = args.indexOf(k); return i !== -1 ? args[i + 1] : d; };
 const BASE = argOf('--base', 'http://localhost:3000');
 const OUT = argOf('--out', path.join(process.cwd(), '.usage-test'));
+// --video: 30ケースを1本の動画に録画する（操作の様子を見せる用。実行は遅くなる）
+const VIDEO = args.includes('--video');
+const SLOWMO = parseInt(argOf('--slowmo', VIDEO ? '120' : '0'), 10);
 mkdirSync(OUT, { recursive: true });
 
 // ---------- price_master（CSV） ----------
@@ -77,14 +80,66 @@ const SCENARIOS = [
 ];
 
 // CHROMIUM_PATH を指定できる環境（バンドル版と別のChromiumを使う場合）に対応
-const browser = await chromium.launch(
-  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}
-);
+const browser = await chromium.launch({
+  ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+  ...(SLOWMO > 0 ? { slowMo: SLOWMO } : {}),
+});
 const results = [];
 
-for (const sc of SCENARIOS) {
-  const ctx = await browser.newContext({ viewport: { width: 1180, height: 1000 }, deviceScaleFactor: 1 });
-  const page = await ctx.newPage();
+const CTX_OPTS = {
+  viewport: { width: 1180, height: 1000 },
+  deviceScaleFactor: 1,
+  ...(VIDEO ? { recordVideo: { dir: path.join(OUT, 'video'), size: { width: 1180, height: 1000 } } } : {}),
+};
+
+// 動画モードでは全ケースを1つのコンテキスト（=1本の動画）で通す
+let sharedCtx = VIDEO ? await browser.newContext(CTX_OPTS) : null;
+let sharedPage = VIDEO ? await sharedCtx.newPage() : null;
+
+// 画面右上に「実行中のケース」を出す（動画で追えるようにするため）
+async function showBanner(page, sc, step) {
+  await page.evaluate(({ no, label, step, total }) => {
+    let el = document.getElementById('__usage_test_banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = '__usage_test_banner';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#F0C000;' +
+        'color:#17160F;font:600 14px/1.5 system-ui,sans-serif;padding:8px 14px;display:flex;' +
+        'gap:16px;align-items:center;box-shadow:0 1px 6px rgba(0,0,0,.2)';
+      document.body.appendChild(el);
+      document.body.style.paddingTop = '38px';
+    }
+    el.innerHTML = '<span style="font-variant-numeric:tabular-nums;background:#17160F;color:#F0C000;' +
+      'padding:2px 8px;border-radius:2px">CASE ' + String(no).padStart(2, '0') + ' / ' + total + '</span>' +
+      '<span>' + label + '</span><span style="margin-left:auto;opacity:.75">' + step + '</span>';
+  }, { no: sc.no, label: sc.label, step, total: SCENARIOS.length });
+}
+
+// 「次へ」を押して、目的のSTEP見出しが出るまで待つ。
+// ハイドレーション前のクリックは無反応になるため、押し直しでリトライする。
+async function goNext(page, expectStep) {
+  const heading = page.locator(`text=STEP ${expectStep}／`);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await page.getByRole('button', { name: '次へ →' }).first().click();
+    try {
+      await heading.first().waitFor({ state: 'visible', timeout: 3000 });
+      return;
+    } catch {
+      // まだ遷移していない：ハイドレーション待ちで押し直す
+      await page.waitForTimeout(500);
+    }
+  }
+  throw new Error(`STEP ${expectStep} へ遷移できませんでした`);
+}
+
+// ページ単位のハンドラ（route / console / dialog）は1回だけ登録する。
+// 動画モードは1ページを使い回すため、収集先だけをケースごとに差し替える。
+let sink = { consoleErrors: [], dialogs: [] };
+const wired = new WeakSet();
+
+async function wire(page) {
+  if (wired.has(page)) return;
+  wired.add(page);
 
   // Supabase REST をローカルの price_master.csv で代替
   await page.route('**/rest/v1/**', async (route) => {
@@ -104,22 +159,31 @@ for (const sc of SCENARIOS) {
   await page.route('**/auth/v1/**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ session: null }) }));
 
-  const consoleErrors = [];
-  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-  const dialogs = [];
-  page.on('dialog', async (d) => { dialogs.push(d.message()); await d.accept(); });
+  page.on('console', (m) => { if (m.type() === 'error') sink.consoleErrors.push(m.text()); });
+  page.on('dialog', async (d) => { sink.dialogs.push(d.message()); await d.accept(); });
+}
+
+for (const sc of SCENARIOS) {
+  const ctx = sharedCtx ?? await browser.newContext(CTX_OPTS);
+  const page = sharedPage ?? await ctx.newPage();
+  await wire(page);
+  sink = { consoleErrors: [], dialogs: [] };
+  const { consoleErrors, dialogs } = sink;
 
   await page.goto(`${BASE}/wizard`, { waitUntil: 'networkidle' });
+  if (VIDEO) await showBanner(page, sc, 'STEP1 作成者情報');
 
   // STEP1 作成者情報（ディーラー）
   await page.getByPlaceholder('会社名を入力').fill('テスト建機株式会社');
   await page.getByPlaceholder('担当者名を入力').fill('検証太郎');
-  await page.getByRole('button', { name: '次へ →' }).click();
+  await goNext(page, 2);
 
   // STEP2 見積先（ディーラーは自動設定）
-  await page.getByRole('button', { name: '次へ →' }).click();
+  if (VIDEO) await showBanner(page, sc, 'STEP2 見積先情報');
+  await goNext(page, 3);
 
   // STEP3 ベースマシン
+  if (VIDEO) await showBanner(page, sc, `STEP3 ベースマシン（${sc.maker} ${sc.model}）`);
   const makerSelect = page.locator('select').first();
   await makerSelect.selectOption(sc.maker);
   const modelSelect = page.locator('select').nth(1);
@@ -137,9 +201,10 @@ for (const sc of SCENARIOS) {
   await page.getByText('共用配管を確認しました').click();
   const step3 = await page.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
   writeFileSync(path.join(OUT, `case${String(sc.no).padStart(2, '0')}-step3.jpg`), step3);
-  await page.getByRole('button', { name: '次へ →' }).click();
+  await goNext(page, 4);
 
   // STEP4 取付方式・S規格・DC（表示された自動判定値を読む）
+  if (VIDEO) await showBanner(page, sc, `STEP4 取付方式・S規格（${sc.mount}）`);
   await page.waitForSelector('text=取付方式');
   await page.getByRole('radio').nth(sc.mount === 'SW' ? 0 : 1).check();
   const sStandard = await page.locator('select').first().inputValue();
@@ -147,11 +212,12 @@ for (const sc of SCENARIOS) {
   const dc = await page.locator('input[type=radio][value=DC3]').isChecked() ? 'DC3' : 'DC2';
   const step4 = await page.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
   writeFileSync(path.join(OUT, `case${String(sc.no).padStart(2, '0')}-step4.jpg`), step4);
-  await page.getByRole('button', { name: '次へ →' }).click();
+  await goNext(page, 5);
 
   // STEP5 品目一覧
+  if (VIDEO) await showBanner(page, sc, 'STEP5 品目一覧（標準構成の自動展開）');
   await page.waitForSelector('table tbody tr', { timeout: 20000 });
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(VIDEO ? 1800 : 400);
   const items = await page.$$eval('table tbody tr', (rows) =>
     rows.map((r) => {
       const c = r.querySelectorAll('td');
@@ -172,7 +238,13 @@ for (const sc of SCENARIOS) {
   results.push({ ...sc, state: { s_standard: sStandard, ec_model: ecModel, dc_system: dc, mount: sc.mount }, items, dialogs, consoleErrors });
   console.log(`[${String(sc.no).padStart(2)}] ${sc.label} → S=${sStandard} EC=${ecModel} ${dc} ${sc.mount} / ${items.length}品目${dialogs.length ? ` / alert:${dialogs.join('|')}` : ''}`);
 
-  await ctx.close();
+  if (!VIDEO) await ctx.close();
+}
+
+if (VIDEO) {
+  const videoPath = await sharedPage.video().path();
+  await sharedCtx.close();   // close で動画が書き出される
+  console.log(`\n動画: ${videoPath}`);
 }
 
 await browser.close();
