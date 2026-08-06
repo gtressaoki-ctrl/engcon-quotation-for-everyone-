@@ -1,6 +1,21 @@
 import type { MountType, SStandard, DCSystem, ClientType } from '@/types/quote';
 import { lookupCatalog, fuzzyLookupCatalog } from '@/lib/machineCatalog';
 
+// このアプリで見積を作成できるS規格。
+// S30級（2t級）とS80級（30t級）は構成品（グリッパー・マシンヒッチ等）の品番が
+// 確定していないため、アプリでは扱わず個別見積とする。
+export const SUPPORTED_S_STANDARDS: SStandard[] = ['S40', 'S45', 'S60', 'S70'];
+
+export function isSupportedSStandard(s: SStandard | string): boolean {
+  return (SUPPORTED_S_STANDARDS as string[]).includes(s);
+}
+
+// 対象外クラスの案内文（画面表示用）
+export function outOfScopeNote(s: SStandard | string): string {
+  const label = s === 'S30' ? 'S30クラス（2t級）' : s === 'S80' ? 'S80クラス（30t級）' : `${s}クラス`;
+  return `${label}は本アプリの対象外です。個別見積となりますので、G.TRESへお問い合わせください。`;
+}
+
 export const EC_ITEM_MAP: Record<string, string> = {
   EC204B: '1080111',
   EC206B: '1068693',

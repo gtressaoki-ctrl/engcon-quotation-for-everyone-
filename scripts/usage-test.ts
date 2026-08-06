@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { detectMachineSpec, DC2_AUTO_MAKERS } from '../lib/machineDetect';
-import { buildStandardItemSpecs, is12VMachine } from '../lib/standardItems';
+import { buildStandardItemSpecs, is12VMachine, isSupportedSStandard } from '../lib/standardItems';
 import { getMachineListEntry, findMachineCatalogEntry } from '../lib/machineCatalog';
 import { calculateSalesPrice } from '../lib/pricing';
 import { isSClassMismatch, sClassTokens } from '../lib/itemChecks';
@@ -70,6 +70,7 @@ interface Scenario {
   expectDC?: DCSystem;         // 人手で確定している期待DC（分かっているものだけ）
   expectS?: SStandard;         // 人手で確定している期待S規格（分かっているものだけ）
   expectVolt?: '12V' | '24V';  // 確定している期待電圧（分かっているものだけ）
+  outOfScope?: boolean;        // 対象外クラス（S30/S80）＝個別見積として弾かれるべきケース
   voltKnown: boolean;          // 電圧が確定情報かどうか
 }
 
@@ -81,8 +82,8 @@ const SCENARIOS: Scenario[] = [
   { no: 4,  label: 'CAT 315-7 / DM（登録・DC3）',            maker: 'CAT',      model: '315-7',        mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S60', expectVolt: '24V', voltKnown: true },
   { no: 5,  label: 'CAT 308SR / SW（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
   { no: 6,  label: 'CAT 308SR / DM（登録・12V確定）',        maker: 'CAT',      model: '308SR',        mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
-  { no: 7,  label: 'CAT 336-07 / SW（登録・DC3・S80）',      maker: 'CAT',      model: '336-07',       mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S80', expectVolt: '24V', voltKnown: true },
-  { no: 8,  label: 'CAT 330 / DM（リストのみ・S80・DC3）',   maker: 'CAT',      model: '330',          mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S80', voltKnown: false },
+  { no: 7, outOfScope: true,  label: 'CAT 336-07 / SW（登録・DC3・S80）',      maker: 'CAT',      model: '336-07',       mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S80', expectVolt: '24V', voltKnown: true },
+  { no: 8, outOfScope: true,  label: 'CAT 330 / DM（リストのみ・S80・DC3）',   maker: 'CAT',      model: '330',          mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S80', voltKnown: false },
   { no: 9,  label: 'VOLVO ECR88D / SW（登録・マスタ間S規格差）', maker: 'VOLVO',  model: 'ECR88D',       mount: 'SW', registered: true,  expectDC: 'DC2', voltKnown: false },
   { no: 10, label: 'CAT 312E / SW（非登録・推定）',          maker: 'CAT',      model: '312E',         mount: 'SW', registered: false, voltKnown: false },
   // ── KOMATSU
@@ -104,7 +105,7 @@ const SCENARIOS: Scenario[] = [
   // ── KOBELCO
   { no: 24, label: 'KOBELCO SK75SR-7 / SW（登録）',          maker: 'KOBELCO',  model: 'SK75SR-7',     mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', voltKnown: false },
   { no: 25, label: 'KOBELCO SK135SR-7 / DM（登録）',         maker: 'KOBELCO',  model: 'SK135SR-7',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', voltKnown: false },
-  { no: 26, label: 'KOBELCO SK17SR-7 / SW（非登録・S30級）', maker: 'KOBELCO',  model: 'SK17SR-7',     mount: 'SW', registered: false, voltKnown: false },
+  { no: 26, outOfScope: true, label: 'KOBELCO SK17SR-7 / SW（非登録・S30級）', maker: 'KOBELCO',  model: 'SK17SR-7',     mount: 'SW', registered: false, voltKnown: false },
   // ── KUBOTA / YANMAR / KATO / VOLVO / その他
   { no: 27, label: 'KUBOTA KX080-4S2 / SW（リストのみ）',    maker: 'KUBOTA',   model: 'KX080-4S2',    mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S45', voltKnown: false },
   { no: 28, label: 'YANMAR Vio80/SV100 / SW（カタログ登録・12V確定）', maker: 'YANMAR', model: 'Vio80/SV100', mount: 'SW', registered: true, expectDC: 'DC2', expectS: 'S45', expectVolt: '12V', voltKnown: true },
@@ -196,6 +197,22 @@ function runScenario(sc: Scenario): RunResult {
   });
 
   const f: Finding[] = [];
+
+  // 0) 対象外クラス（S30/S80）は個別見積。ウィザードが弾くのが正しい挙動。
+  const blocked = !isSupportedSStandard(state.s_standard);
+  if (!!sc.outOfScope !== blocked) {
+    f.push({
+      sev: 'NG', code: 'SCOPE',
+      msg: sc.outOfScope
+        ? `対象外クラスのはずが ${state.s_standard} と判定され、見積が作成できてしまう`
+        : `対応クラスのはずが対象外の ${state.s_standard} と判定され、見積が作成できない`,
+    });
+  }
+  if (blocked) {
+    // 弾かれるケースは構成品を展開しないため、以降の構成チェックは行わない
+    f.push({ sev: 'INFO', code: 'OUT_OF_SCOPE', msg: `${state.s_standard} クラスのため個別見積として案内（STEP3・STEP4で停止）` });
+    return { scenario: sc, detected: { ...detected }, state, ecCorrected, items: [], findings: f };
+  }
 
   // 1) 登録状態の確認
   const inCatalog = !!findMachineCatalogEntry(sc.maker, sc.model);

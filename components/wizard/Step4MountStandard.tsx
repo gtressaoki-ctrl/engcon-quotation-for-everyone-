@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { SStandard } from '@/types/quote';
+import { SUPPORTED_S_STANDARDS, isSupportedSStandard, outOfScopeNote } from '@/lib/standardItems';
 
 const EC_MODELS: Record<SStandard, string[]> = {
   S30: ['EC204B'],
@@ -30,7 +31,13 @@ export default function Step4MountStandard() {
     update({ s_standard: val, ec_model: models[0] });
   }
 
+  const outOfScope = !isSupportedSStandard(s_standard);
+
   function handleNext() {
+    if (outOfScope) {
+      alert(outOfScopeNote(s_standard));
+      return;
+    }
     nextStep();
   }
 
@@ -54,11 +61,22 @@ export default function Step4MountStandard() {
         <label className="block text-sm font-medium text-gray-700 mb-1">S規格</label>
         <select value={s_standard} onChange={(e) => handleSStandardChange(e.target.value as SStandard)}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black">
-          {(['S30', 'S40', 'S45', 'S60', 'S70', 'S80'] as SStandard[]).map((s) => (
+          {outOfScope && <option value={s_standard}>{s_standard}（対象外）</option>}
+          {SUPPORTED_S_STANDARDS.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
       </div>
+
+      {outOfScope && (
+        <div className="border border-red-300 bg-red-50 rounded-lg p-3 text-sm text-red-700">
+          <p className="font-medium">{outOfScopeNote(s_standard)}</p>
+          <p className="mt-1 text-xs text-red-600">
+            構成品（グリッパー・マシンヒッチ等）の品番が未確定のため、このクラスは自動展開できません。
+            対応クラス（{SUPPORTED_S_STANDARDS.join(' / ')}）を選び直すか、STEP3で機種を確認してください。
+          </p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">ECモデル</label>

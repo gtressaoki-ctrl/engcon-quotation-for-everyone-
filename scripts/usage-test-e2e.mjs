@@ -53,8 +53,8 @@ const SCENARIOS = [
   { no: 4,  maker: 'CAT',      model: '315-7',        mount: 'DM', label: 'CAT 315-7 / DM（登録・DC3）' },
   { no: 5,  maker: 'CAT',      model: '308SR',        mount: 'SW', label: 'CAT 308SR / SW（登録・12V確定）' },
   { no: 6,  maker: 'CAT',      model: '308SR',        mount: 'DM', label: 'CAT 308SR / DM（登録・12V確定）' },
-  { no: 7,  maker: 'CAT',      model: '336-07',       mount: 'SW', label: 'CAT 336-07 / SW（登録・DC3・S80）' },
-  { no: 8,  maker: 'CAT',      model: '330',          mount: 'DM', label: 'CAT 330 / DM（リストのみ・S80・DC3）' },
+  { no: 7,  outOfScope: true, maker: 'CAT',      model: '336-07',       mount: 'SW', label: 'CAT 336-07 / SW（登録・DC3・S80）' },
+  { no: 8,  outOfScope: true, maker: 'CAT',      model: '330',          mount: 'DM', label: 'CAT 330 / DM（リストのみ・S80・DC3）' },
   { no: 9,  maker: 'VOLVO',    model: 'ECR88D',       mount: 'SW', label: 'VOLVO ECR88D / SW（登録・マスタ間S規格差）' },
   { no: 10, maker: 'CAT',      model: '312E',         mount: 'SW', label: 'CAT 312E / SW（非登録・推定）' },
   { no: 11, maker: 'KOMATSU',  model: 'PC138US-11',   mount: 'SW', label: 'KOMATSU PC138US-11 / SW（登録）' },
@@ -72,7 +72,7 @@ const SCENARIOS = [
   { no: 23, maker: 'SUMITOMO', model: 'SH145X-8',     mount: 'SW', label: 'SUMITOMO SH145X-8 / SW（非登録）' },
   { no: 24, maker: 'KOBELCO',  model: 'SK75SR-7',     mount: 'SW', label: 'KOBELCO SK75SR-7 / SW（登録）' },
   { no: 25, maker: 'KOBELCO',  model: 'SK135SR-7',    mount: 'DM', label: 'KOBELCO SK135SR-7 / DM（登録）' },
-  { no: 26, maker: 'KOBELCO',  model: 'SK17SR-7',     mount: 'SW', label: 'KOBELCO SK17SR-7 / SW（非登録・S30級）' },
+  { no: 26, outOfScope: true, maker: 'KOBELCO',  model: 'SK17SR-7',     mount: 'SW', label: 'KOBELCO SK17SR-7 / SW（非登録・S30級）' },
   { no: 27, maker: 'KUBOTA',   model: 'KX080-4S2',    mount: 'SW', label: 'KUBOTA KX080-4S2 / SW（リストのみ）' },
   { no: 28, maker: 'YANMAR',   model: 'Vio80/SV100',  mount: 'SW', label: 'YANMAR Vio80/SV100 / SW（カタログ登録・12V確定）' },
   { no: 29, maker: 'KATO',     model: 'HD512-7',      mount: 'SW', label: 'KATO HD512-7 / SW（リストのみ）' },
@@ -122,7 +122,7 @@ async function advance(page, expectStep, prepare) {
   let lastError;
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      if (prepare) await prepare();
+      if (prepare) await prepare(attempt);
       await page.getByRole('button', { name: '次へ →' }).first().click();
       await heading.waitFor({ state: 'visible', timeout: 4000 });
       return;
@@ -178,7 +178,7 @@ for (const sc of SCENARIOS) {
   if (VIDEO) await showBanner(page, sc, 'STEP1 作成者情報');
 
   // STEP1 作成者情報（ディーラー）
-  await advance(page, 2, async () => {
+  await advance(page, 2, async () => {  // fillは毎回やり直すため追加処理は不要
     await page.getByPlaceholder('会社名を入力').fill('テスト建機株式会社');
     await page.getByPlaceholder('担当者名を入力').fill('検証太郎');
   });
@@ -204,12 +204,34 @@ for (const sc of SCENARIOS) {
     await page.getByPlaceholder(/型式を入力/).fill(sc.model);
   }
   const pipingCheck = page.locator('input[type=checkbox]').last();
-  if (!(await pipingCheck.isChecked())) await pipingCheck.check();
+  const pipingLabel = page.getByText('共用配管を確認しました');
+  if (!(await pipingCheck.isChecked())) await pipingLabel.click();
   const step3 = await page.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
   writeFileSync(path.join(OUT, `case${String(sc.no).padStart(2, '0')}-step3.jpg`), step3);
-  await advance(page, 4, async () => {
-    // 機種名・共用配管がハイドレーションで消えていた場合はここで入れ直す
-    if (!(await pipingCheck.isChecked())) await pipingCheck.check();
+  // 対象外クラス（S30/S80）はSTEP3で止まるのが正しい挙動。案内が出て進めないことを確認する。
+  if (sc.outOfScope) {
+    const note = page.getByText('本アプリの対象外です', { exact: false });
+    const shown = await note.first().isVisible().catch(() => false);
+    await page.getByRole('button', { name: '次へ →' }).first().click();
+    await page.waitForTimeout(600);
+    const stayed = await page.locator('text=STEP 3／').first().isVisible().catch(() => false);
+    const shot = await page.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
+    writeFileSync(path.join(OUT, `case${String(sc.no).padStart(2, '0')}-step5.jpg`), shot);
+    results.push({ ...sc, state: { s_standard: '対象外', ec_model: '—', dc_system: '—', mount: sc.mount },
+      items: [], dialogs, consoleErrors, blocked: { noteShown: shown, stayedOnStep3: stayed } });
+    console.log(`[${String(sc.no).padStart(2)}] ${sc.label} → 対象外として停止: 案内${shown ? '有' : '無'} / STEP3に留まる=${stayed}`);
+    if (!VIDEO) await ctx.close();
+    continue;
+  }
+
+  await advance(page, 4, async (attempt) => {
+    // ハイドレーション前の操作はReact側に伝わらないことがあるため、リトライ時は
+    // チェックをトグルして状態を作り直す（DOMだけcheckedでReactはfalseの状態を解消する）
+    if (attempt > 0) {
+      await pipingLabel.click();
+      await page.waitForTimeout(150);
+    }
+    if (!(await pipingCheck.isChecked())) await pipingLabel.click();
     const shown = await page.locator('select').nth(1).inputValue().catch(() => '');
     if (shown === '__custom__' || shown === '') {
       const free = page.getByPlaceholder('機種名を直接入力');

@@ -3,6 +3,7 @@
 import { useWizardStore } from '@/lib/wizardStore';
 import { getCatalogModels, getMachineListEntry, findMachineCatalogEntry, fuzzyMachineListEntry } from '@/lib/machineCatalog';
 import { detectMachineSpec, DC2_AUTO_MAKERS } from '@/lib/machineDetect';
+import { isSupportedSStandard, outOfScopeNote, SUPPORTED_S_STANDARDS } from '@/lib/standardItems';
 
 const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'YANMAR', 'KATO', 'VOLVO', 'その他'];
 
@@ -43,9 +44,14 @@ export default function Step3Machine() {
     applyModelLookup(value);
   }
 
+  // 機種から判定されたS規格が対象外クラス（S30/S80）なら、その場で止めて案内する
+  const detectedS = machine_model.trim() ? detectMachineSpec(machine_maker, machine_model).s_standard : undefined;
+  const outOfScope = detectedS != null && !isSupportedSStandard(detectedS);
+
   function handleNext() {
     if (!machine_model.trim()) { alert('機種名を入力してください'); return; }
     if (!piping_confirmed) { alert('共用配管を確認してください'); return; }
+    if (outOfScope && detectedS) { alert(outOfScopeNote(detectedS)); return; }
     nextStep();
   }
 
@@ -134,6 +140,16 @@ export default function Step3Machine() {
           </div>
         )}
       </div>
+
+      {outOfScope && detectedS && (
+        <div className="border border-red-300 bg-red-50 rounded-lg p-3 text-sm text-red-700">
+          <p className="font-medium">{outOfScopeNote(detectedS)}</p>
+          <p className="mt-1 text-xs text-red-600">
+            この機種は {detectedS} クラスと判定されました。本アプリで見積を作成できるのは
+            {' '}{SUPPORTED_S_STANDARDS.join(' / ')} です。
+          </p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">製造年月（任意）</label>
