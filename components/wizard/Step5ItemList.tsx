@@ -96,8 +96,8 @@ const CAT_QSAFE = '8000271';        // Qsafe（Q-safe-QLM）。DM用
 const CAT_DC3_HARNESS = '8001992';  // DC3コントロールシステム（DC3-MAP4-eML-CAT-313-335NG）
 const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MAP32-QH5-CAT 313 NG）
 
-// CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
-const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
+// DC3構成のチルトローテータ品番（S規格＋マウント方式別。CAT/KOMATSU等メーカー共通）
+const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S60_DM: '1080267',
   S60_SW: '1075311',
   S70_SW: '1073879',
@@ -187,14 +187,15 @@ export default function Step5ItemList() {
     const catalogEntry =
       lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
       fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
-    const catDc3TiltOverride = (machine_maker === 'CAT' && dc_system === 'DC3')
-      ? CAT_DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
+    // DC3はメーカーによらずマウント×S規格でチルトローテータ品番が決まる
+    const dc3TiltOverride = (dc_system === 'DC3')
+      ? DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
       : undefined;
     // DM時のECモデル別 直付け（Direct connect）品番
     const dmDirect = DM_DIRECT_EC_ITEM_MAP[ec_model];
     let ecItemNo: string | undefined;
-    if (catDc3TiltOverride) {
-      ecItemNo = catDc3TiltOverride;
+    if (dc3TiltOverride) {
+      ecItemNo = dc3TiltOverride;
     } else if (mount_type === 'DM') {
       if (s_standard === 'S40') {
         // S40は見積主のECモデル選択（EC204B/EC206B）で品番を切替（マップ優先）
@@ -302,6 +303,21 @@ export default function Step5ItemList() {
         const r = await lk(no);
         built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
       }
+    } else if (machine_maker === 'KOMATSU') {
+      // KOMATSUのDC3構成（PC138US-12/PC138USi-12 等）
+      const ctrl = await lk('8002875');  // DC3-MAP4-eML-Komatsu PC-12
+      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8002875', 1, ctrl.description));
+      if (mount_type === 'SW') {
+        const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
+        built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+        const qsc = await lk('8002137');  // EXTDC3-MAP30-QH5-12V/24V
+        built.push(makeItem('QSCシステム', qsc.price, price_type, '8002137', 1, qsc.description));
+      } else {
+        const qs = await lk('8000271');   // Qsafe
+        built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
+      }
+      const hose = await lk('540190');
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
     } else {
       const dc3c = await lk('8001992');
       built.push(makeItem('DC3コントロールシステム', dc3c.price, price_type, '8001992', 1, dc3c.description));
