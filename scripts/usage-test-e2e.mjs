@@ -115,22 +115,26 @@ async function showBanner(page, sc, step) {
   }, { no: sc.no, label: sc.label, step, total: SCENARIOS.length });
 }
 
-// 「次へ」を押して、目的のSTEP見出しが出るまで待つ。
-// ハイドレーション前のクリックは無反応になるため、押し直しでリトライする。
-async function goNext(page, expectStep) {
-  const heading = page.locator(`text=STEP ${expectStep}／`);
-  for (let attempt = 0; attempt < 5; attempt++) {
-    await page.getByRole('button', { name: '次へ →' }).first().click();
+// 目的のSTEPへ進む。ハイドレーション前の入力はReactの再描画で消え、
+// 必須項目のalertで止まるため、入力からやり直す形でリトライする。
+async function advance(page, expectStep, prepare) {
+  const heading = page.locator(`text=STEP ${expectStep}／`).first();
+  let lastError;
+  for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      await heading.first().waitFor({ state: 'visible', timeout: 3000 });
+      if (prepare) await prepare();
+      await page.getByRole('button', { name: '次へ →' }).first().click();
+      await heading.waitFor({ state: 'visible', timeout: 4000 });
       return;
-    } catch {
-      // まだ遷移していない：ハイドレーション待ちで押し直す
+    } catch (e) {
+      lastError = e;
       await page.waitForTimeout(500);
     }
   }
-  throw new Error(`STEP ${expectStep} へ遷移できませんでした`);
+  throw new Error(`STEP ${expectStep} へ遷移できませんでした（${lastError?.message ?? ''}）`);
 }
+
+const goNext = (page, expectStep) => advance(page, expectStep);
 
 // ページ単位のハンドラ（route / console / dialog）は1回だけ登録する。
 // 動画モードは1ページを使い回すため、収集先だけをケースごとに差し替える。
@@ -174,9 +178,10 @@ for (const sc of SCENARIOS) {
   if (VIDEO) await showBanner(page, sc, 'STEP1 作成者情報');
 
   // STEP1 作成者情報（ディーラー）
-  await page.getByPlaceholder('会社名を入力').fill('テスト建機株式会社');
-  await page.getByPlaceholder('担当者名を入力').fill('検証太郎');
-  await goNext(page, 2);
+  await advance(page, 2, async () => {
+    await page.getByPlaceholder('会社名を入力').fill('テスト建機株式会社');
+    await page.getByPlaceholder('担当者名を入力').fill('検証太郎');
+  });
 
   // STEP2 見積先（ディーラーは自動設定）
   if (VIDEO) await showBanner(page, sc, 'STEP2 見積先情報');
@@ -198,10 +203,19 @@ for (const sc of SCENARIOS) {
   } else {
     await page.getByPlaceholder(/型式を入力/).fill(sc.model);
   }
-  await page.getByText('共用配管を確認しました').click();
+  const pipingCheck = page.locator('input[type=checkbox]').last();
+  if (!(await pipingCheck.isChecked())) await pipingCheck.check();
   const step3 = await page.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
   writeFileSync(path.join(OUT, `case${String(sc.no).padStart(2, '0')}-step3.jpg`), step3);
-  await goNext(page, 4);
+  await advance(page, 4, async () => {
+    // 機種名・共用配管がハイドレーションで消えていた場合はここで入れ直す
+    if (!(await pipingCheck.isChecked())) await pipingCheck.check();
+    const shown = await page.locator('select').nth(1).inputValue().catch(() => '');
+    if (shown === '__custom__' || shown === '') {
+      const free = page.getByPlaceholder('機種名を直接入力');
+      if (await free.count() > 0 && !(await free.inputValue())) await free.fill(sc.model);
+    }
+  });
 
   // STEP4 取付方式・S規格・DC（表示された自動判定値を読む）
   if (VIDEO) await showBanner(page, sc, `STEP4 取付方式・S規格（${sc.mount}）`);
