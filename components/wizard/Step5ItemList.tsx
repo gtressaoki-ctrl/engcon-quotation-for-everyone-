@@ -253,7 +253,7 @@ export default function Step5ItemList() {
           built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
         }
         const hose = await lk('540190');
-        built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
+        built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
         noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
         if (client_type === 'dealer') {
           noteAdditions.push(CAT_DEALER_NOTE);
@@ -317,7 +317,7 @@ export default function Step5ItemList() {
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
       const hose = await lk('540190');
-      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
     } else {
       const dc3c = await lk('8001992');
       built.push(makeItem('DC3コントロールシステム', dc3c.price, price_type, '8001992', 1, dc3c.description));
@@ -329,7 +329,7 @@ export default function Step5ItemList() {
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
       const hose = await lk('540190');
-      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 2, hose.description));
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
     }
 
     if (noteAdditions.length > 0) {
