@@ -213,6 +213,10 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
     const swHitchNo = catalogHitch ?? SW_HITCH_BY_CLASS[machine_maker]?.[s_standard];
     if (swHitchNo) {
       push('hitch', swHitchNo, 'マシンヒッチ/クイックカプラ');
+    } else {
+      // メーカー×クラスの対応表に無い場合（メーカー「その他」・輸入機など）。
+      // 品番を他メーカーで代用せず、品番未定の行を必ず立てて欠落に気づけるようにする。
+      push('hitch', undefined, 'マシンヒッチ/クイックカプラ（要確認：品番未設定）');
     }
   }
 

@@ -178,7 +178,13 @@ for (const sc of SCENARIOS) {
   if (VIDEO) await showBanner(page, sc, 'STEP1 作成者情報');
 
   // STEP1 作成者情報（ディーラー）
-  await advance(page, 2, async () => {  // fillは毎回やり直すため追加処理は不要
+  await advance(page, 2, async (attempt) => {
+    // 初回アクセスはコンパイル待ちでハイドレーションが遅れ、入力がReactに伝わらない
+    // ことがある。遷移できなかったら読み直してから入力し直す。
+    if (attempt > 0) {
+      await page.reload({ waitUntil: 'networkidle' });
+      await page.waitForTimeout(1000);
+    }
     await page.getByPlaceholder('会社名を入力').fill('テスト建機株式会社');
     await page.getByPlaceholder('担当者名を入力').fill('検証太郎');
   });

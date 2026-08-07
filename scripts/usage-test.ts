@@ -300,7 +300,11 @@ function runScenario(sc: Scenario): RunResult {
 
   // 6) 品番・価格の欠落
   for (const it of items) {
-    if (!it.item_no) f.push({ sev: 'NG', code: 'NO_ITEM_NO', msg: `${it.role}: 品番が決まらず「${it.name}」（定価空欄）` });
+    if (!it.item_no) {
+      // ヒッチは補完できないメーカーがあるため、品番未定を明示した行として扱う（警告）。
+      const sev = it.role === 'hitch' ? 'WARN' : 'NG';
+      f.push({ sev, code: 'NO_ITEM_NO', msg: `${it.role}: 品番が決まらず「${it.name}」（定価空欄・要確認表示）` });
+    }
     else if (it.list_price == null) f.push({ sev: 'NG', code: 'NO_PRICE', msg: `${it.role} ${it.item_no}: 価格マスタに無い（要確認表示）` });
   }
 
