@@ -86,6 +86,7 @@ export default function DealerQuotes() {
                   <th className="text-left px-4 py-3">担当者</th>
                   <th className="text-left px-4 py-3">見積先</th>
                   <th className="text-left px-4 py-3">種別</th>
+                  <th className="text-left px-4 py-3">状態</th>
                   <th className="text-right px-4 py-3">合計金額</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -98,11 +99,19 @@ export default function DealerQuotes() {
                       {q.revision_of_quote_number && (
                         <div className="text-xs text-gray-400 font-sans">← {q.revision_of_quote_number} の改訂</div>
                       )}
+                      {q.admin_comment && (
+                        <div className="text-xs text-red-600 font-sans mt-1 whitespace-pre-wrap">管理者：{q.admin_comment}</div>
+                      )}
                     </td>
                     <td className="px-4 py-3">{q.created_at ? new Date(q.created_at).toLocaleDateString('ja-JP') : ''}</td>
                     <td className="px-4 py-3">{q.creator_name}</td>
                     <td className="px-4 py-3">{q.client_name}</td>
                     <td className="px-4 py-3">{CLIENT_TYPE_LABELS[q.client_type] || q.client_type}</td>
+                    <td className="px-4 py-3">
+                      {q.status === 'approved'
+                        ? <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded whitespace-nowrap">承認済み</span>
+                        : <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded whitespace-nowrap">審査中</span>}
+                    </td>
                     <td className="px-4 py-3 text-right">¥{q.total.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right">
                       <button onClick={() => revise(q.id)} className="text-sm text-black hover:underline">改訂</button>
@@ -110,7 +119,7 @@ export default function DealerQuotes() {
                   </tr>
                 ))}
                 {quotes.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                     まだ見積がありません。「＋ 新規見積を作成」から作成できます。
                   </td></tr>
                 )}

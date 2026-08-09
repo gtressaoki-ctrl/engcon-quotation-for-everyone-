@@ -25,6 +25,8 @@ export default function AdminDashboard() {
   const [filters, setFilters] = useState({ since: '', until: '', creator_company: '', creator_name: '', client_type: '' });
   const [detail, setDetail] = useState<{ quote: QuoteRecord; items: QuoteItem[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [approveComment, setApproveComment] = useState('');
+  const [approveMsg, setApproveMsg] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -161,12 +163,35 @@ export default function AdminDashboard() {
     if (!id) return;
     setDetailLoading(true);
     setDetail(null);
+    setApproveMsg('');
     try {
       const res = await fetch(`/api/quotes/${id}`);
       const json = await res.json();
-      if (res.ok) setDetail(json);
+      if (res.ok) { setDetail(json); setApproveComment(json.quote?.admin_comment ?? ''); }
     } finally {
       setDetailLoading(false);
+    }
+  }
+
+  // 見積の承認／承認取消（管理者ログインのセッションで実行）
+  async function approveQuote(approve: boolean) {
+    if (!detail?.quote?.id) return;
+    setApproveMsg('処理中...');
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) { setApproveMsg('ログインが必要です'); return; }
+    const res = await fetch('/api/admin/approve-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id: detail.quote.id, approve, adminComment: approveComment }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setApproveMsg(approve ? '✓ 正式見積として承認しました' : '✓ 審査中に戻しました');
+      setDetail((d) => d ? { ...d, quote: { ...d.quote, status: json.status, admin_comment: approveComment.trim() || null } } : d);
+      fetchQuotes();
+    } else {
+      setApproveMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
     }
   }
 
@@ -341,7 +366,12 @@ export default function AdminDashboard() {
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-lg font-bold text-gray-800">見積番号 {detail.quote.quote_number}</h2>
+                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                      見積番号 {detail.quote.quote_number}
+                      {detail.quote.status === 'approved'
+                        ? <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">承認済み（正式見積）</span>
+                        : <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded">審査中</span>}
+                    </h2>
                     {detail.quote.revision_of_quote_number && (
                       <p className="text-xs text-gray-400 mt-0.5">元見積：{detail.quote.revision_of_quote_number}</p>
                     )}
@@ -352,6 +382,32 @@ export default function AdminDashboard() {
                     </button>
                     <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
                   </div>
+                </div>
+
+                <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 space-y-2">
+                  <p className="text-sm font-semibold text-blue-800">管理者チェック / 承認</p>
+                  <label className="block text-xs text-gray-600">追記コメント（赤字で表示されます。追記・変更点を記入）</label>
+                  <textarea
+                    value={approveComment}
+                    onChange={(e) => setApproveComment(e.target.value)}
+                    rows={2}
+                    placeholder="例：納期は別途相談。金額は◯◯を反映済み。"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button onClick={() => approveQuote(true)} className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                      正式見積として承認
+                    </button>
+                    {detail.quote.status === 'approved' && (
+                      <button onClick={() => approveQuote(false)} className="text-sm border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded">
+                        審査中に戻す
+                      </button>
+                    )}
+                    {approveMsg && <span className="text-xs text-gray-600">{approveMsg}</span>}
+                  </div>
+                  {detail.quote.admin_comment && (
+                    <p className="text-sm text-red-600 whitespace-pre-wrap">管理者コメント：{detail.quote.admin_comment}</p>
+                  )}
                 </div>
 
                 <DetailSection title="作成者情報">

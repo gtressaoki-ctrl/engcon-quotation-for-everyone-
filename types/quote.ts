@@ -122,4 +122,9 @@ export interface QuoteRecord {
 
   revision_of?: number;
   revision_of_quote_number?: string;
+
+  // 承認フロー：status NULL/'pending'=審査中、'approved'=承認済み（正式見積）
+  status?: string | null;
+  admin_comment?: string | null;
+  approved_at?: string | null;
 }
