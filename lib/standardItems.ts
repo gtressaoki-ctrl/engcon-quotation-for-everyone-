@@ -39,8 +39,16 @@ export function is12VMachine(maker: string, model: string): boolean {
 
 // 12Vマシン用のチルトローテータ本体品番（SW）。24V既定(EC_ITEM_MAP)に対する上書き。
 // 現状12V品番が存在するのはS45(EC209B)のみ。S60以上に12Vは無い。
+// SW品はメーカー非依存（在庫リスト上も Machine adapted: No）。
 export const EC_ITEM_MAP_12V_SW: Record<string, string> = {
   EC209B: '1067734',  // EC209BS-QSM45Q-QS45-DC2-12V-H48-T51
+};
+
+// 12Vマシン用のチルトローテータ本体品番（DM）。
+// DM品は機種専用のため、メーカー×ECモデルで持つ。
+export const DM_DIRECT_12V_BY_MAKER: Record<string, Record<string, string>> = {
+  CAT:    { EC209B: '1079945' },  // Direct connect-DC2-12V-H48（CAT 307.5/308/309 NG）
+  YANMAR: { EC209B: '1080886' },  // Direct connect-DC2-12V-H48（Yanmar VIO70〜100/SV86,100）
 };
 
 // ダイレクトマウント用：ECモデル別の直付け（Direct connect）チルトローテータ品番
@@ -105,13 +113,52 @@ export const CAT_QSAFE = '8000271';        // Qsafe（Q-safe-QLM）。DM用
 export const CAT_DC3_HARNESS = '8001992';  // DC3コントロールシステム（DC3-MAP4-eML-CAT-313-335NG）
 export const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MAP32-QH5-CAT 313 NG）
 
-// CAT専用：DC3構成のチルトローテータ品番（S規格＋マウント方式別。マスタデータより）
-export const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = {
-  S60_DM: '1080267',
-  S60_SW: '1075311',
-  S70_SW: '1073879',
-  S80_SW: '1075472',
+// ── DC3構成（メーカー別）─────────────────────────────────────────
+// DC3のコントロール（eMLハーネス）はベースマシン専用品。メーカーごとに品番が異なる。
+export const DC3_HARNESS_BY_MAKER: Record<string, string> = {
+  CAT:     '8001992',  // DC3-MAP4-eML-CAT-313-335NG
+  KOMATSU: '8002875',  // DC3-MAP4-eML-Komatsu PC-12
 };
+
+// DC3のQSC（SW用）。CATは機種専用品、他メーカーは汎用キット（S規格でQH4/QH5を切替）。
+export const DC3_QSC_GENERIC_QH4 = '8002135';  // EXTDC3-MAP30-QH4-12V/24V（8t以下用・アキュム1）
+export const DC3_QSC_GENERIC_QH5 = '8002137';  // EXTDC3-MAP30-QH5-12V/24V（8t超用・アキュム2）
+
+export function dc3QscItemNo(maker: string, sStandard: string): string {
+  if (maker === 'CAT') return CAT_DC3_QSC;
+  return (sStandard === 'S40' || sStandard === 'S45') ? DC3_QSC_GENERIC_QH4 : DC3_QSC_GENERIC_QH5;
+}
+
+// DC3構成のチルトローテータ品番（メーカー×S規格×取付方式）。
+// SW（サンドイッチ）品はメーカー非依存（在庫リスト上も Machine adapted: No）。
+// DM（Direct connect）品は機種専用のため、メーカーごとに品番が異なる。
+export const DC3_TILT_ROTATOR_MAP: Record<string, Record<string, string>> = {
+  CAT: {
+    S60_DM: '1080267',  // EC214S-QSM60Q-Direct connect-DC3-24V-H28（CAT 313,315F,NG）
+    S60_SW: '1075311',
+    S70_SW: '1073879',
+    S80_SW: '1075472',
+  },
+  KOMATSU: {
+    S45_DM: '1083824',  // EC209BS-QSM45Q-Direct connect-DC3-24V-H48（Komatsu PC78/88/PW98）
+    S60_DM: '1084907',  // EC214S-QSM60Q-Direct connect-DC3-24V-H28（Komatsu PC120/130/138）
+    S60_SW: '1075311',  // SW品は汎用
+    S70_DM: '1084555',  // EC226S-QSM70Q-Direct connect-DC3-H31（Komatsu PC200/210/220/228…）
+    S70_SW: '1073879',  // SW品は汎用
+  },
+};
+
+// DC3構成のマシンヒッチ（SW用。Direct connect＝機種専用品）
+export const DC3_SW_HITCH_BY_MAKER: Record<string, Partial<Record<string, string>>> = {
+  KOMATSU: {
+    S45: '1083911',  // S45-Direct connect-DC3（Komatsu PC78/PC88/PW98）
+    S60: '1081000',  // S60-Direct connect-DC3（Komatsu PC120/128US/130/138US…）
+    S70: '1082347',  // S70-Direct connect-DC3（Komatsu PC200/210/220/228…・吊り点なし0T）
+  },
+};
+
+// 後方互換（既存の参照名を維持）
+export const CAT_DC3_TILT_ROTATOR_MAP: Record<string, string> = DC3_TILT_ROTATOR_MAP.CAT;
 
 export const CAT_DC3_TILTROTATOR_NOTE =
   '【備考】チルトローテータ利用には下記が必須となります。\n' +
@@ -173,21 +220,25 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
   const catalogEntry =
     lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
     fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
-  const catDc3TiltOverride = (machine_maker === 'CAT' && dc_system === 'DC3')
-    ? CAT_DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
+  const dc3TiltOverride = dc_system === 'DC3'
+    ? DC3_TILT_ROTATOR_MAP[machine_maker]?.[`${s_standard}_${mount_type}`]
     : undefined;
   // DM時のECモデル別 直付け（Direct connect）品番
   const dmDirect = DM_DIRECT_EC_ITEM_MAP[ec_model];
   let ecItemNo: string | undefined;
-  if (catDc3TiltOverride) {
-    ecItemNo = catDc3TiltOverride;
+  if (dc3TiltOverride) {
+    ecItemNo = dc3TiltOverride;
   } else if (mount_type === 'DM') {
     if (s_standard === 'S40') {
       // S40は見積主のECモデル選択（EC204B/EC206B）で品番を切替（マップ優先）
       ecItemNo = dmDirect ?? catalogEntry?.ec_item_no ?? EC_ITEM_MAP[ec_model];
     } else {
-      // 他サイズはcatalogの機種別Direct品番を優先、無ければECモデル別Direct品番
-      ecItemNo = catalogEntry?.ec_item_no ?? dmDirect ?? EC_ITEM_MAP[ec_model];
+      // 12Vのベースマシンは、メーカー別の12V直付け品番を最優先する
+      const dm12v = is12VMachine(machine_maker, machine_model)
+        ? DM_DIRECT_12V_BY_MAKER[machine_maker]?.[ec_model]
+        : undefined;
+      // 次にcatalogの機種別Direct品番、無ければECモデル別Direct品番
+      ecItemNo = dm12v ?? catalogEntry?.ec_item_no ?? dmDirect ?? EC_ITEM_MAP[ec_model];
     }
   } else {
     // SW（サンドイッチ）。12Vのベースマシン（CAT308/SV100等）はECモデル別の12V品番を優先。
@@ -210,7 +261,8 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
     const catalogHitch = (catalogEntry?.hitch_item_no && !GRD_TYPE_HITCH_ITEM_NOS.has(catalogEntry.hitch_item_no))
       ? catalogEntry.hitch_item_no
       : undefined;
-    const swHitchNo = catalogHitch ?? SW_HITCH_BY_CLASS[machine_maker]?.[s_standard];
+    const dc3Hitch = dc_system === 'DC3' ? DC3_SW_HITCH_BY_MAKER[machine_maker]?.[s_standard] : undefined;
+    const swHitchNo = catalogHitch ?? dc3Hitch ?? SW_HITCH_BY_CLASS[machine_maker]?.[s_standard];
     if (swHitchNo) {
       push('hitch', swHitchNo, 'マシンヒッチ/クイックカプラ');
     } else {
@@ -221,23 +273,24 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
   }
 
   // 4. DCシステム品目
-  if (machine_maker === 'CAT') {
-    const { size, isGC } = parseCatModelInfo(machine_model);
-
-    if (dc_system === 'DC3') {
-      // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
-      push('control', CAT_DC3_HARNESS, 'DC3コントロールシステム');
-      if (mount_type === 'SW') {
-        push('qsc', CAT_DC3_QSC, 'QSCシステム');
-      } else {
-        push('qsafe', CAT_QSAFE, 'Qsafe');
-      }
-      push('hose', '540190', 'ホースプロテクション', 2);
-      noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
-      if (client_type === 'dealer') {
-        noteAdditions.push(CAT_DEALER_NOTE);
-      }
+  if (dc_system === 'DC3') {
+    // DC3構成（MIG2なし／ベースマシン側のジョイスティックを使用）。
+    // コントロール（eMLハーネス）はメーカー専用品、QSCはCATのみ機種専用で他は汎用キット。
+    const harness = DC3_HARNESS_BY_MAKER[machine_maker];
+    push('control', harness, harness ? 'DC3コントロールシステム' : 'DC3コントロールシステム（要確認：品番未設定）');
+    if (mount_type === 'SW') {
+      push('qsc', dc3QscItemNo(machine_maker, s_standard), 'QSCシステム');
     } else {
+      push('qsafe', CAT_QSAFE, 'Qsafe');
+    }
+    push('hose', '540190', 'ホースプロテクション', 2);
+    if (machine_maker === 'CAT') {
+      noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
+      if (client_type === 'dealer') noteAdditions.push(CAT_DEALER_NOTE);
+    }
+  } else if (machine_maker === 'CAT') {
+    const { size, isGC } = parseCatModelInfo(machine_model);
+    {
       // DC2構成のコントロール系品目。CATの世代で使う品番が変わる。
       //  ・GCシリーズ（313以上）: 専用セット 8001221
       //  ・-07シリーズ（305-07, 308-07 等・型式に -07/-7 を含む）: CAT専用セット 8001080
@@ -258,7 +311,7 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
       }
       push('hose', '540190', 'ホースプロテクション', 4);
     }
-  } else if (dc_system === 'DC2') {
+  } else {
     push('control', '8002535', 'DC2コントロールシステム');
     push('mig2', '841528', 'MIG2');
     if (mount_type === 'SW') {
@@ -267,14 +320,6 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
       push('qsafe', '8000271', 'Qsafe');
     }
     push('hose', '540190', 'ホースプロテクション', 4);
-  } else {
-    push('control', '8001992', 'DC3コントロールシステム');
-    if (mount_type === 'SW') {
-      push('qsc', '8002251', 'DC3 QSCシステム');
-    } else {
-      push('qsafe', '8000271', 'Qsafe');
-    }
-    push('hose', '540190', 'ホースプロテクション', 2);
   }
 
   // 5. 住友建機専用追加部品
