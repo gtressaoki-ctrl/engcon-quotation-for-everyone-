@@ -58,7 +58,11 @@ export default function Step10Confirm() {
       </Section>
 
       <Section title="見積先情報">
-        <Row label="種別" value={{ dealer: 'ディーラー向け', enduser: 'エンドユーザー・その他' }[state.client_type as 'dealer' | 'enduser']} />
+        <Row label="種別" value={{
+          dealer: 'ディーラー向け',
+          reseller: '未登録販売店向け',
+          enduser: 'エンドユーザー・その他',
+        }[state.client_type]} />
         <Row label="見積先名" value={state.client_name} />
       </Section>
 
