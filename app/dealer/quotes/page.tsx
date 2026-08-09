@@ -33,7 +33,10 @@ export default function DealerQuotes() {
       return;
     }
     setCompany(meta?.company ?? '');
-    const res = await fetch(`/api/quotes?creator_user_id=${session.user.id}`);
+    // 会社名一致（別名込み）＋自分の作成分をサーバー側で照合して取得
+    const res = await fetch('/api/dealer/quotes', {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
     const json = await res.json();
     setQuotes(json.data || []);
     setLoading(false);
