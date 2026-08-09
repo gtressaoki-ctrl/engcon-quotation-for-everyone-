@@ -62,7 +62,7 @@ const SCENARIOS = [
   { no: 13, maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'SW', label: 'KOMATSU PC200i-12 / SW（DC3例外機種）' },
   { no: 14, maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'DM', label: 'KOMATSU PC200i-12 / DM（DC3例外機種）' },
   { no: 15, maker: 'KOMATSU',  model: 'PC78US-10',    mount: 'DM', label: 'KOMATSU PC78US-10 / DM（登録）' },
-  { no: 16, maker: 'KOMATSU',  model: 'PC88MR-11',    mount: 'SW', label: 'KOMATSU PC88MR-11 / SW（非登録）' },
+  { no: 16, maker: 'KOMATSU',  model: 'PC130-12',     mount: 'SW', label: 'KOMATSU PC130-12 / SW（非登録・新世代）' },
   { no: 17, maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'SW', label: 'HITACHI ZX135US-7 / SW（登録）' },
   { no: 18, maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'DM', label: 'HITACHI ZX135US-7 / DM（登録）' },
   { no: 19, maker: 'HITACHI',  model: 'ZX225US-7',    mount: 'SW', label: 'HITACHI ZX225US-7 / SW（リストのみ）' },

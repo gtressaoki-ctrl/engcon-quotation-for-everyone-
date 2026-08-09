@@ -92,7 +92,7 @@ const SCENARIOS: Scenario[] = [
   { no: 13, label: 'KOMATSU PC200i-12 / SW（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'SW', registered: true,  expectDC: 'DC3', expectS: 'S70', voltKnown: false },
   { no: 14, label: 'KOMATSU PC200i-12 / DM（DC3例外機種）',  maker: 'KOMATSU',  model: 'PC200i-12',    mount: 'DM', registered: true,  expectDC: 'DC3', expectS: 'S70', voltKnown: false },
   { no: 15, label: 'KOMATSU PC78US-10 / DM（登録）',         maker: 'KOMATSU',  model: 'PC78US-10',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S45', expectVolt: '24V', voltKnown: true },
-  { no: 16, label: 'KOMATSU PC88MR-11 / SW（非登録）',       maker: 'KOMATSU',  model: 'PC88MR-11',    mount: 'SW', registered: false, voltKnown: false },
+  { no: 16, label: 'KOMATSU PC130-12 / SW（非登録・新世代）', maker: 'KOMATSU',  model: 'PC130-12',     mount: 'SW', registered: false, voltKnown: false },
   // ── HITACHI
   { no: 17, label: 'HITACHI ZX135US-7 / SW（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'SW', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
   { no: 18, label: 'HITACHI ZX135US-7 / DM（登録）',         maker: 'HITACHI',  model: 'ZX135US-7',    mount: 'DM', registered: true,  expectDC: 'DC2', expectS: 'S60', expectVolt: '24V', voltKnown: true },
