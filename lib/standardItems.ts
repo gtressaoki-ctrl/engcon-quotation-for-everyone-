@@ -170,6 +170,24 @@ export const CAT_DEALER_NOTE =
   'CATと取付の役割分担についての打合せをお願いいたします。\n' +
   '機能キャリブレーションならびにICTとの接続はキャタピラーに依頼するのがいいと思われます。';
 
+// パレット計上の対象外となる制御系・消耗品の品番。
+// 物理機器（チルトローテータ・グリッパー・ヒッチ・アタッチメント）のみをパレット計上するため、
+// 下記はここで一元管理する（品番を追加したらこの集合にも反映すること）。
+export const NON_PALLET_ITEM_NOS: ReadonlySet<string> = new Set([
+  CAT_DC2_SET_NG_301_310,   // 8001080 CAT DC2/MIG2セット（NG 301-310）
+  CAT_DC2_SET_GC_313_PLUS,  // 8001221 CAT DC2/MIG2セット（GC 313+）
+  DC2_QSC_QH4,              // 8002200 QSCシステム（QH4・8t以下）
+  DC2_QSC_QH5,              // 8002201 QSCシステム（QH5・8t超）
+  DC3_QSC_GENERIC_QH4,      // 8002135 DC3 QSC（汎用・8t以下）
+  DC3_QSC_GENERIC_QH5,      // 8002137 DC3 QSC（汎用・8t超）
+  CAT_QSAFE,                // 8000271 Qsafe
+  CAT_DC3_QSC,              // 8002251 DC3 QSC（CAT 313 NG）
+  '8002535',                // DC2コントロールシステム
+  '841528',                 // MIG2
+  '540190',                 // ホースプロテクション
+  ...Object.values(DC3_HARNESS_BY_MAKER),  // DC3コントロール（メーカー別）
+]);
+
 // 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系）
 export function parseCatModelInfo(model: string): { size: number | null; isGC: boolean } {
   const sizeMatch = model.match(/(\d{3})/);
@@ -283,7 +301,7 @@ export function buildStandardItemSpecs(input: StandardItemsInput): StandardItems
     } else {
       push('qsafe', CAT_QSAFE, 'Qsafe');
     }
-    push('hose', '540190', 'ホースプロテクション', 2);
+    push('hose', '540190', 'ホースプロテクション', 4);
     if (machine_maker === 'CAT') {
       noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
       if (client_type === 'dealer') noteAdditions.push(CAT_DEALER_NOTE);

@@ -3,22 +3,11 @@
 import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import type { ExtraCost, QuoteItem } from '@/types/quote';
+import { NON_PALLET_ITEM_NOS } from '@/lib/standardItems';
 
 // コントロール系・消耗品はパレット不要（チルトローテータ本体やグリッパーに同梱されるため）。
-// 物理機器（チルトローテータ・グリッパー・アタッチメント）を各1パレット計上
-// 表示名がマスタの英語表記（説明文）になる場合があるため、品番ベースで判定する
-const NON_PALLET_ITEM_NOS = new Set([
-  '8001080', // CAT DC2/MIG2セット（NG 301-310）
-  '8001221', // CAT DC2/MIG2セット（GC 313+）
-  '8002200', // QSCシステム（QH4・8t以下）
-  '8002201', // QSCシステム（QH5・8t超）
-  '8000271', // Qsafe
-  '8001992', // DC3コントロールシステム
-  '8002251', // DC3 QSCシステム
-  '8002535', // DC2コントロールシステム
-  '841528',  // MIG2
-  '540190',  // ホースプロテクション
-]);
+// 物理機器（チルトローテータ・グリッパー・ヒッチ・アタッチメント）を各1パレット計上。
+// 対象外の品番は lib/standardItems.ts に集約している（構成品の追加時に漏れないようにするため）。
 
 // 品番が無いカスタム品目向けのフォールバック判定
 const CONTROL_KEYWORDS = ['コントロールシステム', 'QSCシステム', 'Qsafe', 'ホースプロテクション', 'MIG2', 'C2C', 'EXTDC'];
