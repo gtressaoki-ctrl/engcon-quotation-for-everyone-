@@ -35,16 +35,20 @@ export default function AdminLogin() {
     const key = prompt('サービスロールキーを入力してください:')?.trim();
     if (!key) return;
     setSetupMsg('設定中...');
-    const res = await fetch('/api/admin/set-admin-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
-      body: JSON.stringify({ email: email.trim(), password }),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (res.ok) {
-      setSetupMsg(json.updated ? '✓ パスワードを再設定しました。ログインしてください。' : '✓ 管理者を作成しました。ログインしてください。');
-    } else {
-      setSetupMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
+    try {
+      const res = await fetch('/api/admin/set-admin-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setSetupMsg(json.updated ? '✓ パスワードを再設定しました。ログインしてください。' : '✓ 管理者を作成しました。ログインしてください。');
+      } else {
+        setSetupMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
+      }
+    } catch (e) {
+      setSetupMsg(`✗ 通信に失敗しました（${String(e)}）。少し待って再試行するか、Supabaseの稼働状況をご確認ください。`);
     }
   }
 
