@@ -10,6 +10,8 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const [setupMsg, setSetupMsg] = useState('');
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -22,6 +24,28 @@ export default function AdminLogin() {
       router.push('/admin/dashboard');
     }
     setLoading(false);
+  }
+
+  // 管理者アカウントの作成／パスワード再設定（サービスロールキーが必要）
+  async function setupAdmin() {
+    if (!email.trim() || password.length < 6) {
+      setSetupMsg('メールアドレスと6文字以上のパスワードを入力してください');
+      return;
+    }
+    const key = prompt('サービスロールキーを入力してください:')?.trim();
+    if (!key) return;
+    setSetupMsg('設定中...');
+    const res = await fetch('/api/admin/set-admin-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setSetupMsg(json.updated ? '✓ パスワードを再設定しました。ログインしてください。' : '✓ 管理者を作成しました。ログインしてください。');
+    } else {
+      setSetupMsg(`✗ ${json.error || `HTTP ${res.status}`}`);
+    }
   }
 
   return (
@@ -47,6 +71,24 @@ export default function AdminLogin() {
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
+
+        <div className="mt-5 pt-4 border-t border-gray-100">
+          <button type="button" onClick={() => setShowSetup((v) => !v)} className="text-xs text-gray-400 hover:text-gray-600">
+            管理者アカウントを作成 / パスワード再設定
+          </button>
+          {showSetup && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-gray-500">
+                上のメール・パスワード欄に設定したい内容を入力し、下のボタンでサービスロールキーを使って作成／再設定します。
+              </p>
+              <button type="button" onClick={setupAdmin}
+                className="w-full text-sm border border-gray-300 hover:bg-gray-100 py-2 rounded-lg">
+                このメール・パスワードで作成／再設定
+              </button>
+              {setupMsg && <p className="text-xs text-gray-600 whitespace-pre-wrap">{setupMsg}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
