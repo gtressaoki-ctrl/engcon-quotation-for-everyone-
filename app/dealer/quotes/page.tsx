@@ -187,11 +187,12 @@ export default function DealerQuotes() {
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-1">品目一覧</p>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm min-w-[420px]">
+                    <table className="w-full text-sm min-w-[520px]">
                       <thead>
                         <tr className="bg-gray-50 text-gray-600">
                           <th className="text-left py-1 px-2">品名</th>
                           <th className="text-left py-1 px-2 whitespace-nowrap">品番</th>
+                          <th className="text-right py-1 px-2 whitespace-nowrap">定価</th>
                           <th className="text-right py-1 px-2">数量</th>
                           <th className="text-right py-1 px-2">金額</th>
                         </tr>
@@ -201,6 +202,7 @@ export default function DealerQuotes() {
                           <tr key={i} className="border-t border-gray-100">
                             <td className="py-1 px-2">{item.name_ja}</td>
                             <td className="py-1 px-2 font-mono text-xs text-gray-500 whitespace-nowrap">{item.item_no || '—'}</td>
+                            <td className="py-1 px-2 text-right whitespace-nowrap">{item.list_price != null ? `¥${item.list_price.toLocaleString()}` : '—'}</td>
                             <td className="py-1 px-2 text-right">{item.qty}</td>
                             <td className="py-1 px-2 text-right whitespace-nowrap">{item.amount != null ? `¥${item.amount.toLocaleString()}` : '—'}</td>
                           </tr>
