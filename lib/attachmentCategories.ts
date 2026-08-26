@@ -43,8 +43,16 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
     getPatterns: (n) => [`Bucket CB%-S${n}%`],
   },
   {
-    id: 'skeleton_bucket', label_ja: 'スケルトンバケット', group: 'mechanical',
+    id: 'sorting_bucket', label_ja: 'ソーティングバケット', group: 'mechanical',
     getPatterns: (n) => [`Bucket SB%-S${n}%`],
+  },
+  {
+    id: 'skeleton_bucket', label_ja: 'スケルトンバケット', group: 'mechanical',
+    getPatterns: (n) => [`Bucket SKB%-S${n}%`],
+  },
+  {
+    id: 'trench_bucket', label_ja: '水・排水バケット', group: 'mechanical',
+    getPatterns: (n) => [`Bucket TB%-S${n}%`],
   },
   {
     id: 'grading_beam', label_ja: 'グレーディングビーム', group: 'mechanical',
@@ -61,8 +69,9 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
     keepFn: (d) => /^R\d/.test(d),
   },
   {
-    id: 'pallet_fork', label_ja: 'パレットフォーク', group: 'mechanical',
+    id: 'pallet_fork_mech', label_ja: 'パレットフォーク（機械式）', group: 'mechanical',
     getPatterns: (n) => [`GAF%-S${n}%`, `GAF%-QS${n}%`],
+    keepFn: (d) => !/GHH/i.test(d) && !/HYD/i.test(d),  // GHH・HYD（油圧式）は除外
   },
   {
     id: 'mechanical_bracket', label_ja: '機械式ブラケット', group: 'mechanical',
@@ -73,6 +82,16 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
     getPatterns: (n) => ECO_BRACKET_PATTERNS[n] ?? [],
   },
   // --- 油圧式 ---
+  {
+    id: 'pallet_fork_hyd', label_ja: 'パレットフォーク（油圧式）', group: 'hydraulic',
+    getPatterns: (n) => [`GAF%-S${n}%`, `GAF%-QS${n}%`],
+    keepFn: (d) => /GHH/i.test(d) || /HYD/i.test(d),  // GHH・HYDのみ
+  },
+  {
+    id: 'combi_grab', label_ja: 'コンビグラブ', group: 'hydraulic',
+    getPatterns: (n) => [`FG%-QS${n}%`, `FG%-S${n}%`],
+    keepFn: (d) => /^FG\d/.test(d),
+  },
   {
     id: 'sg', label_ja: 'ストーン＆ソーティンググラブ', group: 'hydraulic',
     getPatterns: (n) => [`SG%-QS${n}%`],
@@ -98,7 +117,8 @@ export const ATTACHMENT_CATEGORIES: AttachmentCategory[] = [
   },
   {
     id: 'grapple_saw', label_ja: 'グラップルソー', group: 'hydraulic',
-    getPatterns: () => [],  // カタログなし・手動入力
+    getPatterns: (n) => [`MG%-QS${n}%`, `MG%-S${n}%`],
+    keepFn: (d) => /^MG\d/.test(d),
   },
 ];
 
