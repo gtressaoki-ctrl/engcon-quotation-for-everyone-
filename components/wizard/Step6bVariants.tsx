@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { ATTACHMENT_CATEGORIES, getStdNum } from '@/lib/attachmentCategories';
 import Stepper from '@/components/Stepper';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
+import { useViewerIsDealer } from '@/lib/useViewerIsDealer';
 import type { QuoteItem } from '@/types/quote';
 
 function parseBucketSize(description: string): string | null {
@@ -23,6 +24,7 @@ interface Variant {
 
 export default function Step6bVariants() {
   const { s_standard, price_type, pending_attachments, items, setItems, update, nextStep, prevStep } = useWizardStore();
+  const isDealer = useViewerIsDealer();
   const [variants, setVariants] = useState<Record<string, Variant[]>>({});
   // category_id → { item_no → qty }。複数品番を同時に選択・各々数量指定できる。
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
@@ -224,7 +226,7 @@ export default function Step6bVariants() {
                                 ¥{v.price_jpy.toLocaleString()}
                                 {stock !== null && (
                                   <span className={`ml-2 font-medium ${outOfStock ? 'text-red-500' : 'text-green-600'}`}>
-                                    ● {outOfStock ? '在庫なし' : '在庫あり'}
+                                    ● {outOfStock ? '在庫なし' : '在庫あり'}{!isDealer ? `（${stock}）` : ''}
                                   </span>
                                 )}
                               </span>

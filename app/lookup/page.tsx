@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import InventoryBadge from '@/components/InventoryBadge';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
+import { useViewerIsDealer } from '@/lib/useViewerIsDealer';
 
 interface PriceRow {
   item_no: string;
@@ -18,6 +19,7 @@ export default function PriceLookupPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
+  const isDealer = useViewerIsDealer();
 
   useEffect(() => {
     fetch('/api/inventory').then((r) => r.json()).then(setInventory).catch(() => {});
@@ -93,7 +95,7 @@ export default function PriceLookupPage() {
                         <td className="px-4 py-3 font-mono text-xs">{r.item_no}</td>
                         <td className="px-4 py-3">{r.description ?? '—'}</td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <InventoryBadge itemNo={r.item_no} inventory={inventory} />
+                          <InventoryBadge itemNo={r.item_no} inventory={inventory} showQuantity={!isDealer} />
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           {r.price_jpy != null ? `¥${r.price_jpy.toLocaleString()}` : '—'}

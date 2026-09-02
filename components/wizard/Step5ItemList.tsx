@@ -8,6 +8,7 @@ import { lookupCatalog, fuzzyLookupCatalog, getCatalogModels } from '@/lib/machi
 import type { QuoteItem, PriceType } from '@/types/quote';
 import InventoryBadge from '@/components/InventoryBadge';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
+import { useViewerIsDealer } from '@/lib/useViewerIsDealer';
 import Stepper from '@/components/Stepper';
 
 const EC_ITEM_MAP: Record<string, string> = {
@@ -134,6 +135,7 @@ export default function Step5ItemList() {
     client_type, note, items, setItems, update, nextStep, prevStep,
   } = useWizardStore();
   const [loading, setLoading] = useState(false);
+  const isDealer = useViewerIsDealer();
   const [inventory, setInventory] = useState<Record<string, number> | null>(null);
   const [lookupNo, setLookupNo] = useState('');
   const [lookupBusy, setLookupBusy] = useState(false);
@@ -456,7 +458,7 @@ export default function Step5ItemList() {
                     {item.item_no ?? '—'}
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-center">
-                    <InventoryBadge itemNo={item.item_no} inventory={inventory} />
+                    <InventoryBadge itemNo={item.item_no} inventory={inventory} showQuantity={!isDealer} />
                   </td>
                   <td className="border border-gray-200 px-2 py-1 text-right">
                     {item.list_price != null ? item.list_price.toLocaleString() : <span className="text-yellow-600 text-xs">要確認</span>}
@@ -509,7 +511,7 @@ export default function Step5ItemList() {
                   <p className="font-mono text-xs text-gray-500 mt-0.5">{item.item_no ?? '—'}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <InventoryBadge itemNo={item.item_no} inventory={inventory} />
+                  <InventoryBadge itemNo={item.item_no} inventory={inventory} showQuantity={!isDealer} />
                   <button onClick={() => removeItem(i)} className="text-red-500 text-xs">✕ 削除</button>
                 </div>
               </div>
