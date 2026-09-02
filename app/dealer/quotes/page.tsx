@@ -212,7 +212,31 @@ export default function DealerQuotes() {
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-700 text-right space-y-0.5">
+                {(() => {
+                  const q = detail.quote;
+                  const travelTotal = (q.travel_cost ?? 0) * (q.travel_count ?? 0);
+                  const guidanceTotal = (q.guidance_cost ?? 0) * (q.guidance_count ?? 0);
+                  const rows: [string, number][] = [];
+                  if (q.freight_cost) rows.push([`国内運賃（${q.pallet_count ?? 0}パレット）`, q.freight_cost]);
+                  if (q.install_cost) rows.push(['取付費用', q.install_cost]);
+                  if (q.hose_parts_cost) rows.push(['ホース取付部材', q.hose_parts_cost]);
+                  if (travelTotal) rows.push([`出張費用（${q.travel_count}回）`, travelTotal]);
+                  if (guidanceTotal) rows.push([`納入指導費（${q.guidance_count}回）`, guidanceTotal]);
+                  if (rows.length === 0) return null;
+                  return (
+                    <div className="text-sm text-gray-700 border-t border-gray-100 pt-2">
+                      <p className="font-semibold mb-1">諸費用</p>
+                      {rows.map(([label, val]) => (
+                        <div key={label} className="flex justify-between">
+                          <span className="text-gray-500">{label}</span>
+                          <span>¥{val.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                <div className="text-sm text-gray-700 text-right space-y-0.5 border-t border-gray-100 pt-2">
                   <div>小計：¥{detail.quote.subtotal?.toLocaleString?.() ?? detail.quote.subtotal}</div>
                   <div>消費税：¥{detail.quote.tax?.toLocaleString?.() ?? detail.quote.tax}</div>
                   <div className="font-bold text-base">合計：¥{detail.quote.total?.toLocaleString?.() ?? detail.quote.total}</div>
