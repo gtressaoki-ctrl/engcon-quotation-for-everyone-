@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 
 // POST /api/admin/inventory
 // Uploads an inventory Excel/CSV file (multipart/form-data, field "file"),
-// extracts FLOOR-location rows with a valid balance, and replaces the
-// `inventory` table with the new snapshot.
+// aggregates each Part number's balance across all warehouses (WH/Location),
+// and replaces the `inventory` table with the new snapshot.
 // Requires X-Admin-Key header matching SUPABASE_SERVICE_ROLE_KEY
 export async function POST(req: NextRequest) {
   const adminKey = req.headers.get('x-admin-key')?.trim();
@@ -50,13 +50,6 @@ export async function POST(req: NextRequest) {
 
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
 
-  // FLOOR（現物在庫）の判定に使う列は、出力形式により "Location" だったり "WH"（倉庫）だったりする。
-  // どちらかの列が FLOOR ならFLOOR在庫とみなす。
-  const LOCATION_KEYS = ['Location', 'WH', 'Warehouse', 'Loc'];
-  function isFloor(row: Record<string, unknown>): boolean {
-    return LOCATION_KEYS.some((k) => String(row[k] ?? '').trim().toUpperCase() === 'FLOOR');
-  }
-
   // 在庫数の列は環境により表記ゆれがある（"Current balance" / "Total balance" 等）。
   // 値も "1.00 Pcs" のように単位付き文字列のことがあるため、数値部分だけを取り出す。
   const BALANCE_KEYS = ['Current balance', 'Total balance', 'Balance', 'Quantity', 'Qty'];
@@ -67,10 +60,9 @@ export async function POST(req: NextRequest) {
     return m ? parseFloat(m[0]) : NaN;
   }
 
+  // 全倉庫を合算：同じ品番（Part number）の在庫を倉庫（WH/Location）に関わらず合計する。
   const itemsByNo = new Map<string, { item_no: string; part_name: string | null; balance: number }>();
   for (const row of rows) {
-    if (!isFloor(row)) continue;
-
     const itemNo = String(row['Part number'] ?? '').trim();
     const balanceKey = BALANCE_KEYS.find((k) => row[k] != null);
     const balance = parseQty(balanceKey ? row[balanceKey] : undefined);
@@ -88,7 +80,7 @@ export async function POST(req: NextRequest) {
   const items = Array.from(itemsByNo.values());
 
   if (items.length === 0) {
-    return NextResponse.json({ error: '有効なFLOOR在庫データが見つかりません' }, { status: 400 });
+    return NextResponse.json({ error: '有効な在庫データ（Part number / 数量）が見つかりません' }, { status: 400 });
   }
 
   const supabase = createServiceClient();
