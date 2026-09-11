@@ -54,6 +54,8 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'KOMATSU', model: 'PC138US-12', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: '1071055' },
   { maker: 'KOMATSU', model: 'PC138USi-12', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1080537' },
   { maker: 'KOMATSU', model: 'PC138USi-12', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: '1071055' },
+  // PC200i-12 は DC3。ヒッチは DC3版 1082347（S70-Direct connect-DC3）。DMは現状なしのためSWのみ。
+  { maker: 'KOMATSU', model: 'PC200i-12', s_standard: 'S70', mount: 'SW', dc: 'DC3', ec_item_no: '1073879', hitch_item_no: '1082347' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
   { maker: 'KOMATSU', model: 'PC228US-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
