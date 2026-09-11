@@ -27,6 +27,29 @@ export default function AdminDashboard() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [approveComment, setApproveComment] = useState('');
   const [approveMsg, setApproveMsg] = useState('');
+  const [copiedMsg, setCopiedMsg] = useState('');
+
+  // クリップボードにコピー（Excelへの転記用）。navigator.clipboardが使えない環境向けにフォールバックも用意。
+  async function copyToClipboard(text: string, label: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedMsg(`${label}をコピーしました`);
+    } catch {
+      setCopiedMsg('コピーに失敗しました');
+    }
+    setTimeout(() => setCopiedMsg(''), 2000);
+  }
 
   useEffect(() => {
     checkAuth();
@@ -434,7 +457,50 @@ export default function AdminDashboard() {
                   <DetailRow label="DCシステム" value={detail.quote.dc_system} />
                 </DetailSection>
 
-                <DetailSection title="品目一覧">
+                <DetailSection
+                  title="品目一覧"
+                  action={
+                    <div className="flex items-center gap-2">
+                      {copiedMsg && <span className="text-xs text-green-600 font-normal">{copiedMsg}</span>}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(
+                            detail.items.map((it) => it.item_no ?? '').filter((v) => v).join('\n'),
+                            '品番'
+                          )
+                        }
+                        className="text-xs font-normal border border-gray-300 bg-white hover:bg-gray-50 rounded px-2 py-1 whitespace-nowrap"
+                      >
+                        品番をコピー
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(
+                            [
+                              ['品番', '品名', '定価', '数量', '販売価', '金額'].join('\t'),
+                              ...detail.items.map((it) =>
+                                [
+                                  it.item_no ?? '',
+                                  it.name_ja ?? '',
+                                  it.list_price ?? '',
+                                  it.qty ?? '',
+                                  it.unit_price ?? '',
+                                  it.amount ?? '',
+                                ].join('\t')
+                              ),
+                            ].join('\n'),
+                            '表'
+                          )
+                        }
+                        className="text-xs font-normal border border-gray-300 bg-white hover:bg-gray-50 rounded px-2 py-1 whitespace-nowrap"
+                      >
+                        表をコピー（Excel用）
+                      </button>
+                    </div>
+                  }
+                >
                   <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm min-w-[640px]">
                     <thead>
@@ -450,7 +516,20 @@ export default function AdminDashboard() {
                     <tbody>
                       {detail.items.map((item, i) => (
                         <tr key={i} className="border-t border-gray-100">
-                          <td className="py-1 px-2 font-mono text-xs">{item.item_no || '—'}</td>
+                          <td className="py-1 px-2 font-mono text-xs">
+                            {item.item_no ? (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(item.item_no!, `品番 ${item.item_no}`)}
+                                title="クリックで品番をコピー"
+                                className="hover:bg-yellow-100 rounded px-1 -mx-1 cursor-pointer"
+                              >
+                                {item.item_no}
+                              </button>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
                           <td className="py-1 px-2">{item.name_ja}</td>
                           <td className="py-1 px-2 text-right">{item.list_price?.toLocaleString() ?? '—'}</td>
                           <td className="py-1 px-2 text-right">{item.qty}</td>
@@ -467,7 +546,17 @@ export default function AdminDashboard() {
                     {detail.items.map((item, i) => (
                       <div key={i} className="border border-gray-200 rounded-lg p-3">
                         <p className="text-sm font-medium break-words">{item.name_ja}</p>
-                        <p className="font-mono text-xs text-gray-500">{item.item_no || '—'}</p>
+                        {item.item_no ? (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(item.item_no!, `品番 ${item.item_no}`)}
+                            className="font-mono text-xs text-gray-500 hover:bg-yellow-100 rounded px-1 -mx-1"
+                          >
+                            {item.item_no}（タップでコピー）
+                          </button>
+                        ) : (
+                          <p className="font-mono text-xs text-gray-500">—</p>
+                        )}
                         <div className="mt-1 flex justify-between text-xs text-gray-500 tabular-nums">
                           <span>定価 {item.list_price != null ? `¥${item.list_price.toLocaleString()}` : '—'}</span>
                           <span>数量 {item.qty}</span>
@@ -518,10 +607,13 @@ export default function AdminDashboard() {
   );
 }
 
-function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+function DetailSection({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gray-100 px-4 py-2 font-medium text-sm text-gray-700">{title}</div>
+      <div className="bg-gray-100 px-4 py-2 font-medium text-sm text-gray-700 flex items-center justify-between gap-2">
+        <span>{title}</span>
+        {action}
+      </div>
       <div className="p-4 space-y-1">{children}</div>
     </div>
   );
