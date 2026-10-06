@@ -66,6 +66,15 @@ export default function Step1Creator() {
   return (
     <div className="space-y-6">
 
+      {(dealerLocked || creator_type === 'dealer') && (
+        <div className="p-3 rounded-lg border border-yellow-300 bg-yellow-50 text-sm text-yellow-900">
+          <p className="font-medium mb-0.5">【ご注意】DC3への移行期間について</p>
+          <p className="text-xs leading-relaxed">
+            現在DC3への移行期間のため、長期の商談の場合はDC2からDC3へ変更となる可能性があることご了承ください。
+          </p>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">見積種別</label>
         <div className="grid grid-cols-2 gap-3">
