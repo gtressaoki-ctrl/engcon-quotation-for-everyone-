@@ -115,6 +115,10 @@ const CAT_DEALER_NOTE =
   'CATと取付の役割分担についての打合せをお願いいたします。\n' +
   '機能キャリブレーションならびにICTとの接続はキャタピラーに依頼するのがいいと思われます。';
 
+// ディーラー見積向け：DC2→DC3移行期間の注意書き（メーカー・構成を問わず表示）
+const DEALER_DC_TRANSITION_NOTE =
+  '【ご注意】現在DC3への移行期間のため、長期の商談の場合はDC2からDC3へ変更となる可能性があることご了承ください。';
+
 // 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系）
 function parseCatModelInfo(model: string): { size: number | null; isGC: boolean } {
   const sizeMatch = model.match(/(\d{3})/);
@@ -332,6 +336,11 @@ export default function Step5ItemList() {
       }
       const hose = await lk('540190');
       built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
+    }
+
+    // ディーラー見積にはDC2→DC3移行期間の注意書きを常に付与する
+    if (client_type === 'dealer') {
+      noteAdditions.push(DEALER_DC_TRANSITION_NOTE);
     }
 
     if (noteAdditions.length > 0) {
