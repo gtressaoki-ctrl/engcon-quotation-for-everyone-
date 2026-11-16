@@ -15,6 +15,12 @@ interface LineItem {
   qty: number;
 }
 
+interface PriceRow {
+  item_no: string;
+  description: string | null;
+  price_jpy: number | null;
+}
+
 // 貼り付け1行を {品番, 数量} に分解する。
 // タブ/カンマ区切り（Excel貼り付け等）なら列扱い、スペースのみなら空白区切り。
 // 先頭列を品番、末尾列が数値なら数量として扱う（なければ数量1）。
@@ -50,6 +56,12 @@ export default function TanpinQuotePage() {
   const [items, setItems] = useState<LineItem[]>([]);
   const [notFound, setNotFound] = useState<string[]>([]);
   const [resolving, setResolving] = useState(false);
+
+  // 品番・品名の検索（検索しながら追加）
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchRows, setSearchRows] = useState<PriceRow[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   // 保存
   const [saving, setSaving] = useState(false);
@@ -135,6 +147,35 @@ export default function TanpinQuotePage() {
     if (!p) return;
     await resolveParts([p]);
     setSinglePartNo('');
+  }
+
+  // 品番・品名で検索（/lookup と同じ挙動）
+  async function search() {
+    const q = searchQuery.trim();
+    if (!q) { setSearchRows([]); setSearched(false); return; }
+    setSearching(true);
+    const { data } = await supabase
+      .from('price_master')
+      .select('item_no, description, price_jpy')
+      .or(`item_no.ilike.%${q}%,description.ilike.%${q}%`)
+      .order('item_no', { ascending: true })
+      .limit(50);
+    setSearchRows((data as PriceRow[]) ?? []);
+    setSearched(true);
+    setSearching(false);
+  }
+
+  // 検索結果の1件を品目に追加（同一品番は数量+1）
+  function addRow(row: PriceRow) {
+    setItems((prev) => {
+      const idx = prev.findIndex((it) => it.item_no === row.item_no);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        return next;
+      }
+      return [...prev, { item_no: row.item_no, name_ja: row.description ?? row.item_no, list_price: row.price_jpy ?? 0, qty: 1 }];
+    });
   }
 
   function setQty(itemNo: string, qty: number) {
@@ -361,6 +402,65 @@ export default function TanpinQuotePage() {
                   見つからなかった品番：<span className="font-mono">{notFound.join(', ')}</span>
                 </p>
               )}
+            </div>
+
+            {/* 品番・品名で検索しながら追加 */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+              <label className="block text-sm font-medium text-gray-700">品番・品名で検索して追加</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') search(); }}
+                  placeholder="例：1080310 / Direct connect / バケット"
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                />
+                <button onClick={search} disabled={searching}
+                  className="bg-primary hover:bg-neutral-800 disabled:bg-gray-400 text-white font-medium px-6 py-2 rounded-lg transition whitespace-nowrap shrink-0">
+                  {searching ? '検索中...' : '検索'}
+                </button>
+              </div>
+
+              {searched && searchRows.length === 0 ? (
+                <p className="text-sm text-gray-400">一致する品番が見つかりませんでした</p>
+              ) : searchRows.length > 0 ? (
+                <div className="border border-gray-100 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto max-h-80 overflow-y-auto">
+                    <table className="w-full text-sm min-w-[520px]">
+                      <thead className="sticky top-0">
+                        <tr className="bg-gray-50 text-gray-600">
+                          <th className="text-left px-3 py-2 whitespace-nowrap">品番</th>
+                          <th className="text-left px-3 py-2">品名</th>
+                          <th className="text-right px-3 py-2 whitespace-nowrap">定価</th>
+                          <th className="px-2 py-2"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {searchRows.map((r) => {
+                          const added = items.some((it) => it.item_no === r.item_no);
+                          return (
+                            <tr key={r.item_no} className="border-t border-gray-100">
+                              <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{r.item_no}</td>
+                              <td className="px-3 py-2">{r.description ?? '—'}</td>
+                              <td className="px-3 py-2 text-right whitespace-nowrap">{r.price_jpy != null ? `¥${r.price_jpy.toLocaleString()}` : '—'}</td>
+                              <td className="px-2 py-2 text-center">
+                                <button
+                                  onClick={() => addRow(r)}
+                                  className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap transition ${added ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-primary text-white hover:bg-neutral-800'}`}
+                                >
+                                  {added ? '追加済 +1' : '追加'}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-1.5 text-xs text-gray-400 border-t border-gray-100">{searchRows.length}件（最大50件）</div>
+                </div>
+              ) : null}
             </div>
 
             {/* 品目一覧 */}
