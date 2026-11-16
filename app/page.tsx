@@ -26,6 +26,13 @@ export default function Home() {
           品番から金額を確認する
         </Link>
 
+        <Link
+          href="/tanpin"
+          className="block w-full mt-3 border border-black text-black hover:bg-neutral-50 font-semibold py-4 px-8 rounded-xl text-lg transition"
+        >
+          単品見積を作成する（定価）
+        </Link>
+
         <div className="mt-6 flex flex-col gap-2">
           <Link href="/dealer/login" className="text-sm text-black hover:underline">
             ディーラーログイン（自分の見積を見返す）
