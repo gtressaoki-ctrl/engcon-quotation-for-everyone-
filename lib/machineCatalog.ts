@@ -58,6 +58,9 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'KOMATSU', model: 'PC200i-12', s_standard: 'S70', mount: 'SW', dc: 'DC3', ec_item_no: '1073879', hitch_item_no: '1082347' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
   { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
+  // PC200-11 の DC3構成。SW：本体1073879・ヒッチ1082347。DM：本体1086744（Direct connect）。
+  { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'SW', dc: 'DC3', ec_item_no: '1073879', hitch_item_no: '1082347' },
+  { maker: 'KOMATSU', model: 'PC200-11', s_standard: 'S70', mount: 'DM', dc: 'DC3', ec_item_no: '1086744', hitch_item_no: null },
   { maker: 'KOMATSU', model: 'PC228US-11', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067394', hitch_item_no: '1082035' },
   { maker: 'KOMATSU', model: 'PC228US-11', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
   { maker: 'HITACHI', model: 'ZX35U-5B', s_standard: 'S40', mount: 'SW', dc: 'DC2', ec_item_no: '1080112', hitch_item_no: '1082036' },
@@ -307,14 +310,15 @@ const DC3_VERIFIED = new Set<string>([
   'KOMATSU|PC138US-12',
   'KOMATSU|PC138USI-12',
   'KOMATSU|PC200I-12',
+  'KOMATSU|PC200-11',
   'SUMITOMO|SH75X-7',
 ]);
 
-// 指定機種のDC3構成が検証済みかどうか（表記ゆれを吸収して判定）
+// 指定機種のDC3構成が検証済みかどうか（表記ゆれ・結合表記 "A/B" を吸収して判定）
 export function isDc3Verified(maker: string, model: string): boolean {
   if (!maker || !model) return false;
-  const key = `${maker}|${model.replace(/\s+/g, '').toUpperCase()}`;
-  return DC3_VERIFIED.has(key);
+  const tokens = model.replace(/\s+/g, '').toUpperCase().split('/');
+  return tokens.some((t) => DC3_VERIFIED.has(`${maker}|${t}`));
 }
 
 // 表記ゆれ（全角/半角・空白・大小文字）を吸収して比較するための正規化

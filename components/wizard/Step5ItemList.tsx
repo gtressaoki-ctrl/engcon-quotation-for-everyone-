@@ -103,6 +103,7 @@ const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S60_DM: '1080267',
   S60_SW: '1075311',
   S70_SW: '1073879',
+  S70_DM: '1086744',
   S80_SW: '1075472',
 };
 
@@ -311,20 +312,30 @@ export default function Step5ItemList() {
         built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
       }
     } else if (machine_maker === 'KOMATSU') {
-      // KOMATSUのDC3構成（PC138US-12/PC138USi-12 等）
-      const ctrl = await lk('8002875');  // DC3-MAP4-eML-Komatsu PC-12
-      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8002875', 1, ctrl.description));
+      // KOMATSUのDC3構成。
+      //  ・PC200-11（-11系）：BCM制御8002893。MIG2はSW/DM両方に計上。ホースはSW4本/DM2本。
+      //  ・PC138US-12/PC138USi-12/PC200i-12（PC-12系）：eML制御8002875。MIG2はSWのみ。ホース4本。
+      const norm = machine_model.replace(/\s+/g, '').toUpperCase();
+      const isPc200_11 = norm.split('/').includes('PC200-11');
+      const ctrlNo = isPc200_11 ? '8002893' : '8002875';
+      const ctrl = await lk(ctrlNo);
+      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, ctrlNo, 1, ctrl.description));
       if (mount_type === 'SW') {
         const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
         built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
         const qsc = await lk('8002137');  // EXTDC3-MAP30-QH5-12V/24V
         built.push(makeItem('QSCシステム', qsc.price, price_type, '8002137', 1, qsc.description));
       } else {
+        if (isPc200_11) {
+          const mig = await lk('8002570');  // PC200-11はDMでもMIG2を計上
+          built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+        }
         const qs = await lk('8000271');   // Qsafe
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
+      const hoseQty = (isPc200_11 && mount_type === 'DM') ? 2 : 4;
       const hose = await lk('540190');
-      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', hoseQty, hose.description));
     } else if (machine_maker === 'SUMITOMO') {
       // 住友建機のDC3構成（SH75X-7等。24V）。ホースプロテクションは構成に含まない。
       const ctrl = await lk('8002893');  // DC3-MAP0-BCM-24V
