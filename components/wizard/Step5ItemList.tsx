@@ -99,6 +99,7 @@ const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MA
 
 // DC3構成のチルトローテータ品番（S規格＋マウント方式別。CAT/KOMATSU等メーカー共通）
 const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
+  S45_SW: '1086682',
   S60_DM: '1080267',
   S60_SW: '1075311',
   S70_SW: '1073879',
@@ -324,6 +325,19 @@ export default function Step5ItemList() {
       }
       const hose = await lk('540190');
       built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
+    } else if (machine_maker === 'SUMITOMO') {
+      // 住友建機のDC3構成（SH75X-7等。24V）。ホースプロテクションは構成に含まない。
+      const ctrl = await lk('8002893');  // DC3-MAP0-BCM-24V
+      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8002893', 1, ctrl.description));
+      if (mount_type === 'SW') {
+        const qsc = await lk('8003223');  // EXTDC3-MAP30-QH4-12V/24V
+        built.push(makeItem('QSCシステム', qsc.price, price_type, '8003223', 1, qsc.description));
+        const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
+        built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+      } else {
+        const qs = await lk('8000271');   // Qsafe
+        built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
+      }
     } else {
       const dc3c = await lk('8001992');
       built.push(makeItem('DC3コントロールシステム', dc3c.price, price_type, '8001992', 1, dc3c.description));

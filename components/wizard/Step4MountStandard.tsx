@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
+import { isDc3Verified } from '@/lib/machineCatalog';
 import type { SStandard } from '@/types/quote';
 
 const EC_MODELS: Record<SStandard, string[]> = {
@@ -14,7 +15,7 @@ const EC_MODELS: Record<SStandard, string[]> = {
 };
 
 export default function Step4MountStandard() {
-  const { mount_type, s_standard, ec_model, dc_system, update, nextStep, prevStep } = useWizardStore();
+  const { mount_type, s_standard, ec_model, dc_system, machine_maker, machine_model, update, nextStep, prevStep } = useWizardStore();
 
   const ecOptions = EC_MODELS[s_standard];
 
@@ -84,6 +85,11 @@ export default function Step4MountStandard() {
             </label>
           ))}
         </div>
+        {dc_system === 'DC3' && isDc3Verified(machine_maker, machine_model) && (
+          <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+            ✓ DC3構成 確認済み（{machine_model}）
+          </p>
+        )}
       </div>
 
       <div className="flex justify-between gap-3 -mx-8 px-8 pt-3 pb-3 mt-2 sticky bottom-0 bg-white/95 backdrop-blur border-t border-gray-200">
