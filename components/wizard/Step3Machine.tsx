@@ -9,7 +9,7 @@ const MAKERS = ['CAT', 'KOMATSU', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'KUBOTA', 'Y
 const DC2_AUTO_MAKERS = ['KOMATSU', 'KUBOTA', 'HITACHI', 'SUMITOMO', 'KOBELCO', 'YANMAR', 'KATO'];
 
 // KOMATSU models that are DC3 (exceptions to DC2 rule)
-const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12'];
+const KOMATSU_DC3_MODELS = ['PC200i-12', 'PC138US-12', 'PC138USi-12', 'PC128US-12', 'PC200-11'];
 
 // item_no -> EC機種名 の逆引き（MACHINE_CATALOG の ec_item_no から ec_model を推定するため）
 const ITEM_NO_TO_EC: Record<string, string> = {

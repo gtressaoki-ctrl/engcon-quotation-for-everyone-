@@ -149,7 +149,8 @@ export default function Step10Confirm() {
       </Section>
 
       <Section title="追加費用">
-        {freight > 0 && <Row label={`国内運賃（${state.pallet_count}パレット）`} value={`¥${freight.toLocaleString()}`} />}
+        {freight > 0 && <Row label={`国内運賃（${state.pallet_count}パレット）※参考`} value={`¥${freight.toLocaleString()}`} />}
+        {freight > 0 && <p className="text-xs text-gray-500 mt-1">※送料は参考金額です（35,000円×パレット数）。確定金額は別途お問い合わせください。</p>}
         {state.install_cost > 0 && <Row label="取付費用" value={`¥${state.install_cost.toLocaleString()}`} />}
         {state.hose_parts_cost > 0 && <Row label="ホース取付部材" value={`¥${state.hose_parts_cost.toLocaleString()}`} />}
         {travelTotal > 0 && <Row label={`出張費用（${state.travel_count}回）`} value={`¥${travelTotal.toLocaleString()}`} />}

@@ -75,7 +75,8 @@ export default function Step8Costs() {
           </div>
           <span className="text-2xl font-bold text-gray-800 whitespace-nowrap shrink-0">{pallet_count} パレット</span>
         </div>
-        <div className="mt-2 text-sm text-gray-600">国内運賃：{fmt(freight)}</div>
+        <div className="mt-2 text-sm text-gray-600">国内運賃（参考）：{fmt(freight)}</div>
+        <p className="text-xs text-gray-500 mt-0.5">※送料は参考金額です（35,000円×パレット数）。確定金額は別途お問い合わせください。</p>
       </div>
 
       {!isDealer && (
