@@ -50,7 +50,7 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
   const mainRows = state.items.map((item) => tr(item.name_ja, item.qty, item.unit_price ?? null, item.amount ?? null, item.list_price ?? null)).join('');
 
   const costRows: string[] = [];
-  if (freight > 0) costRows.push(tr('送料（国内輸送）', state.pallet_count, 35000, freight));
+  if (freight > 0) costRows.push(tr('送料（国内輸送）※参考', state.pallet_count, 35000, freight));
   if (state.install_cost > 0) costRows.push(tr('取付費用', 1, state.install_cost, state.install_cost));
   if (state.hose_parts_cost > 0) costRows.push(tr('ホース取付部材一式', 1, state.hose_parts_cost, state.hose_parts_cost));
   if (travelTotal > 0) costRows.push(tr('出張費用', state.travel_count, state.travel_unit_cost, travelTotal));
@@ -65,6 +65,7 @@ export function generateQuoteHtml({ state, quoteNumber, createdAt }: Props): str
   const noteLines: string[] = [];
   if (state.delivery_location) noteLines.push(`取付場所：${state.delivery_location}`);
   if (state.note) noteLines.push(state.note);
+  if (freight > 0) noteLines.push('※送料は参考金額です（35,000円×パレット数で算出）。確定金額は別途お問い合わせください。');
   if (state.has_ict) {
     noteLines.push(`ICT取付予定：${state.ict_maker || ''} ${state.ict_model || ''}${state.ict_note ? '　' + state.ict_note : ''}`.trim());
     if (state.machine_maker === 'CAT' && state.dc_system === 'DC3') {

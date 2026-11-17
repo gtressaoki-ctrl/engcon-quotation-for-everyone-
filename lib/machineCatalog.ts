@@ -52,6 +52,12 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'KOMATSU', model: 'PC138US-11', s_standard: 'S60', mount: 'DM', dc: 'DC2', ec_item_no: '1082863', hitch_item_no: '1071055' },
   { maker: 'KOMATSU', model: 'PC138US-12', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1080537' },
   { maker: 'KOMATSU', model: 'PC138US-12', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: '1071055' },
+  // PC128US-12 の DC3構成（S60）。SW本体1075311・ヒッチ1086556(S60-Direct connect-DC3)、DM本体1080267。
+  { maker: 'KOMATSU', model: 'PC128US-12', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1086556' },
+  { maker: 'KOMATSU', model: 'PC128US-12', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: null },
+  // KATO HD514-9 (S60) / HD823-9 (S70) の DC3構成（SW）。RSM見積ベース。
+  { maker: 'KATO', model: 'HD514-9', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1086556' },
+  { maker: 'KATO', model: 'HD823-9', s_standard: 'S70', mount: 'SW', dc: 'DC3', ec_item_no: '1073879', hitch_item_no: '1082347' },
   { maker: 'KOMATSU', model: 'PC138USi-12', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1080537' },
   { maker: 'KOMATSU', model: 'PC138USi-12', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: '1071055' },
   // PC200i-12 は DC3。ヒッチは DC3版 1082347（S70-Direct connect-DC3）。DMは現状なしのためSWのみ。
@@ -182,8 +188,10 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'KATO', model: 'HD308US-7', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
   { maker: 'KATO', model: 'HD512-7', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'KATO', model: 'HD514MR-7', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD514-9', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC3' },
   { maker: 'KATO', model: 'HD820-8', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'KATO', model: 'HD823MR-8', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
+  { maker: 'KATO', model: 'HD823-9', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC3' },
   { maker: 'KATO', model: 'HD1025-7', s_standard: 'S70', ec_primary: 'EC226S', dc: 'DC2' },
   { maker: 'KATO', model: 'HD1430-7', s_standard: 'S80', ec_primary: 'EC233', dc: 'DC2' },
   // KOBELCO
@@ -228,6 +236,7 @@ export const MACHINE_LIST: MachineListEntry[] = [
   { maker: 'KOMATSU', model: 'PC78USE-11', s_standard: 'S45', ec_primary: 'EC209B', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC120-11', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC128US-11', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
+  { maker: 'KOMATSU', model: 'PC128US-12', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC3' },
   { maker: 'KOMATSU', model: 'PC130-11', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC138US-11', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC2' },
   { maker: 'KOMATSU', model: 'PC138US-12', s_standard: 'S60', ec_primary: 'EC214S', dc: 'DC3' },
@@ -311,7 +320,10 @@ const DC3_VERIFIED = new Set<string>([
   'KOMATSU|PC138USI-12',
   'KOMATSU|PC200I-12',
   'KOMATSU|PC200-11',
+  'KOMATSU|PC128US-12',
   'SUMITOMO|SH75X-7',
+  'KATO|HD514-9',
+  'KATO|HD823-9',
 ]);
 
 // 指定機種のDC3構成が検証済みかどうか（表記ゆれ・結合表記 "A/B" を吸収して判定）
@@ -319,6 +331,19 @@ export function isDc3Verified(maker: string, model: string): boolean {
   if (!maker || !model) return false;
   const tokens = model.replace(/\s+/g, '').toUpperCase().split('/');
   return tokens.some((t) => DC3_VERIFIED.has(`${maker}|${t}`));
+}
+
+// DC3の制御ユニット品番を機種から決定する。
+//  ・eML系（Komatsu ICT: PC138US-12 / PC138USi-12 / PC200i-12）＝ 8002875（DC3-MAP4-eML-Komatsu PC-12）
+//  ・それ以外（PC200-11 / PC128US-12 / KATO HD 等）＝ 8002893（DC3-MAP0-BCM-24V。既定）
+const DC3_EML_MODELS = new Set<string>([
+  'PC138US-12',
+  'PC138USI-12',
+  'PC200I-12',
+]);
+export function dc3ControlItemNo(maker: string, model: string): string {
+  const tokens = (model || '').replace(/\s+/g, '').toUpperCase().split('/');
+  return tokens.some((t) => DC3_EML_MODELS.has(t)) ? '8002875' : '8002893';
 }
 
 // 表記ゆれ（全角/半角・空白・大小文字）を吸収して比較するための正規化
