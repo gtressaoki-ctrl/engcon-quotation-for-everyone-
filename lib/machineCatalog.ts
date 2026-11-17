@@ -76,6 +76,8 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'HITACHI', model: 'ZX200-6', s_standard: 'S70', mount: 'DM', dc: 'DC2', ec_item_no: '1080789', hitch_item_no: '1074818' },
   { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', mount: 'SW', dc: 'DC2', ec_item_no: '1068197', hitch_item_no: '1079651' },
   { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1057275' },
+  // SH75X-7 の DC3構成（24V）。本体1086682・ヒッチ1087327（S45-Direct connect-DC3）。
+  { maker: 'SUMITOMO', model: 'SH75X-7', s_standard: 'S45', mount: 'SW', dc: 'DC3', ec_item_no: '1086682', hitch_item_no: '1087327' },
   { maker: 'SUMITOMO', model: 'SH135X-7', s_standard: 'S60', mount: 'SW', dc: 'DC2', ec_item_no: '1067444', hitch_item_no: '1077618' },
   { maker: 'SUMITOMO', model: 'SH135X-7', s_standard: 'S60', mount: 'DM', dc: 'DC2', ec_item_no: null, hitch_item_no: '1071055' },
   { maker: 'SUMITOMO', model: 'SH200-7', s_standard: 'S70', mount: 'SW', dc: 'DC2', ec_item_no: '1067143', hitch_item_no: '1043881' },
@@ -296,6 +298,23 @@ export const MACHINE_LIST: MachineListEntry[] = [
 
 export function getCatalogModels(maker: string): string[] {
   return MACHINE_LIST.filter((e) => e.maker === maker).map((e) => e.model);
+}
+
+// DC3構成の検証（チェック）が済んでいる機種（maker|正規化model）。
+// Step5の生成ロジックで実機BOMに基づきDC3一式を組める機種をここに列挙し、
+// UI（DC選択）で「DC3構成 確認済み」バッジを表示する。キーは大文字・空白除去済み。
+const DC3_VERIFIED = new Set<string>([
+  'KOMATSU|PC138US-12',
+  'KOMATSU|PC138USI-12',
+  'KOMATSU|PC200I-12',
+  'SUMITOMO|SH75X-7',
+]);
+
+// 指定機種のDC3構成が検証済みかどうか（表記ゆれを吸収して判定）
+export function isDc3Verified(maker: string, model: string): boolean {
+  if (!maker || !model) return false;
+  const key = `${maker}|${model.replace(/\s+/g, '').toUpperCase()}`;
+  return DC3_VERIFIED.has(key);
 }
 
 // 表記ゆれ（全角/半角・空白・大小文字）を吸収して比較するための正規化
