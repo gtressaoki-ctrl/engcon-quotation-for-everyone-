@@ -121,6 +121,10 @@ const CAT_DEALER_NOTE =
 const DEALER_DC_TRANSITION_NOTE =
   '【ご注意】現在DC3への移行期間のため、長期の商談の場合はDC2からDC3へ変更となる可能性があることご了承ください。';
 
+// BCM制御（8002893）のDC3構成はeMLを使わないため、マシンファンクション（ICT/マシンガイダンス）非対応。
+const BCM_NO_MACHINE_FUNCTION_NOTE =
+  '【ご注意】本構成はBCM制御（eML非搭載）のため、マシンファンクション（ICT／マシンガイダンス連携）には対応しません。';
+
 // 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系）
 function parseCatModelInfo(model: string): { size: number | null; isGC: boolean } {
   const sizeMatch = model.match(/(\d{3})/);
@@ -348,6 +352,8 @@ export default function Step5ItemList() {
       const hoseQty = (isBcm && mount_type === 'DM') ? 2 : 4;
       const hose = await lk('540190');
       built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', hoseQty, hose.description));
+      // BCM制御はマシンファンクション（ICT/マシンガイダンス）非対応のため注記する
+      if (isBcm) noteAdditions.push(BCM_NO_MACHINE_FUNCTION_NOTE);
     }
 
     // ディーラー見積は見積書の備考にもDC2→DC3移行の注意書きを記載する
