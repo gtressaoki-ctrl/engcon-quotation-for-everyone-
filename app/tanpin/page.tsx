@@ -4,11 +4,16 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { DEALER_ROLE } from '@/lib/dealerAuth';
+import { useWizardStore } from '@/lib/wizardStore';
 
 // 単品見積：品番をコピペ（または1件ずつ追加）→定価で一覧化→正式見積として保存（番号発行）。
-// 販売価の掛け率は使わず「定価のみ」。金額＝定価×数量。
+// 販売価の掛け率は使わず「定価のみ」。金額＝定価×数量。見積改定（revision）にも対応。
+
+let uidCounter = 0;
+const uid = () => `li_${Date.now()}_${++uidCounter}`;
 
 interface LineItem {
+  id: string;
   item_no: string;
   name_ja: string;
   list_price: number;
@@ -68,6 +73,10 @@ export default function TanpinQuotePage() {
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
   const [error, setError] = useState('');
 
+  // 見積改定（revision）。loadQuote 後に /tanpin へ遷移すると改定モードで開く。
+  const [revisionOf, setRevisionOf] = useState<number | undefined>(undefined);
+  const [revisionOfNumber, setRevisionOfNumber] = useState<string | undefined>(undefined);
+
   // ディーラーログイン中なら作成者をその会社に固定
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -79,6 +88,32 @@ export default function TanpinQuotePage() {
         setCreatorUserId(session.user.id);
       }
     });
+  }, []);
+
+  // 見積改定モード：直前に loadQuote された見積（wizardStore）があれば単品見積UIに読み込む。
+  useEffect(() => {
+    const st = useWizardStore.getState();
+    if (st.revision_of) {
+      setRevisionOf(st.revision_of);
+      setRevisionOfNumber(st.revision_of_quote_number);
+      setCreatorType(st.creator_type === 'gtres' ? 'gtres' : 'dealer');
+      setCreatorCompany(st.creator_company || (st.creator_type === 'gtres' ? '株式会社 G.TRES' : ''));
+      setCreatorName(st.creator_name || '');
+      setCreatorUserId(st.creator_user_id);
+      setClientName(st.client_name || '');
+      setNote(st.note || '');
+      setItems(
+        (st.items || []).map((it) => ({
+          id: uid(),
+          item_no: it.item_no ?? '',
+          name_ja: it.name_ja ?? '',
+          list_price: it.list_price ?? it.unit_price ?? 0,
+          qty: it.qty ?? 1,
+        }))
+      );
+      // 読み込み後はストアをクリア（再入時に改定モードが残らないように）
+      useWizardStore.getState().reset();
+    }
   }, []);
 
   // 品番配列をprice_masterで引いて、既存品目にマージする（同一品番は数量加算）
@@ -116,6 +151,7 @@ export default function TanpinQuotePage() {
             next[idx] = { ...next[idx], qty: next[idx].qty + addQty };
           } else {
             next.push({
+              id: uid(),
               item_no: partNo,
               name_ja: rec.description ?? partNo,
               list_price: rec.price_jpy ?? 0,
@@ -174,16 +210,28 @@ export default function TanpinQuotePage() {
         next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
         return next;
       }
-      return [...prev, { item_no: row.item_no, name_ja: row.description ?? row.item_no, list_price: row.price_jpy ?? 0, qty: 1 }];
+      return [...prev, { id: uid(), item_no: row.item_no, name_ja: row.description ?? row.item_no, list_price: row.price_jpy ?? 0, qty: 1 }];
     });
   }
 
-  function setQty(itemNo: string, qty: number) {
-    setItems((prev) => prev.map((it) => (it.item_no === itemNo ? { ...it, qty: qty > 0 ? qty : 1 } : it)));
+  function setQty(id: string, qty: number) {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, qty: qty > 0 ? qty : 1 } : it)));
   }
 
-  function removeItem(itemNo: string) {
-    setItems((prev) => prev.filter((it) => it.item_no !== itemNo));
+  function removeItem(id: string) {
+    setItems((prev) => prev.filter((it) => it.id !== id));
+  }
+
+  // 順番入替（1つ上/下へ）
+  function moveItem(id: string, dir: -1 | 1) {
+    setItems((prev) => {
+      const idx = prev.findIndex((it) => it.id === id);
+      const j = idx + dir;
+      if (idx < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
   }
 
   const subtotal = items.reduce((s, it) => s + it.list_price * it.qty, 0);
@@ -249,6 +297,7 @@ export default function TanpinQuotePage() {
         subtotal,
         tax,
         total,
+        revision_of: revisionOf,
       };
 
       const res = await fetch('/api/save-quote', {
@@ -270,9 +319,15 @@ export default function TanpinQuotePage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">単品見積（定価）</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{revisionOf ? '単品見積（改定）' : '単品見積（定価）'}</h1>
           <Link href="/" className="text-sm text-black hover:underline">← トップへ</Link>
         </div>
+
+        {revisionOf && !quoteNumber && (
+          <div className="mb-4 p-3 bg-neutral-100 border-l-4 border-black rounded-lg text-sm text-gray-700">
+            見積番号 <strong>{revisionOfNumber}</strong> の改定として保存されます（単品見積UI・定価ベース）。
+          </div>
+        )}
 
         {quoteNumber ? (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center space-y-4">
@@ -470,6 +525,7 @@ export default function TanpinQuotePage() {
                   <table className="w-full text-sm min-w-[560px]">
                     <thead>
                       <tr className="bg-gray-50 text-gray-600">
+                        <th className="px-2 py-2 whitespace-nowrap">順番</th>
                         <th className="text-left px-3 py-2 whitespace-nowrap">品番</th>
                         <th className="text-left px-3 py-2">品名</th>
                         <th className="text-right px-3 py-2 whitespace-nowrap">定価</th>
@@ -479,9 +535,25 @@ export default function TanpinQuotePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((it) => (
-                        <tr key={it.item_no} className="border-t border-gray-100">
-                          <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{it.item_no}</td>
+                      {items.map((it, i) => (
+                        <tr key={it.id} className="border-t border-gray-100">
+                          <td className="px-2 py-2 whitespace-nowrap text-center">
+                            <div className="inline-flex flex-col leading-none">
+                              <button
+                                onClick={() => moveItem(it.id, -1)}
+                                disabled={i === 0}
+                                title="上へ"
+                                className="text-gray-500 hover:text-black disabled:text-gray-200 text-xs px-1"
+                              >▲</button>
+                              <button
+                                onClick={() => moveItem(it.id, 1)}
+                                disabled={i === items.length - 1}
+                                title="下へ"
+                                className="text-gray-500 hover:text-black disabled:text-gray-200 text-xs px-1"
+                              >▼</button>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{it.item_no || '—'}</td>
                           <td className="px-3 py-2">{it.name_ja}</td>
                           <td className="px-3 py-2 text-right whitespace-nowrap">¥{it.list_price.toLocaleString()}</td>
                           <td className="px-3 py-2 text-center">
@@ -489,13 +561,13 @@ export default function TanpinQuotePage() {
                               type="number"
                               min={1}
                               value={it.qty}
-                              onChange={(e) => setQty(it.item_no, parseInt(e.target.value, 10) || 1)}
+                              onChange={(e) => setQty(it.id, parseInt(e.target.value, 10) || 1)}
                               className="w-16 border border-gray-300 rounded px-2 py-1 text-right"
                             />
                           </td>
                           <td className="px-3 py-2 text-right whitespace-nowrap font-medium">¥{(it.list_price * it.qty).toLocaleString()}</td>
                           <td className="px-2 py-2 text-center">
-                            <button onClick={() => removeItem(it.item_no)} className="text-red-400 hover:text-red-600 text-sm">削除</button>
+                            <button onClick={() => removeItem(it.id)} className="text-red-400 hover:text-red-600 text-sm">削除</button>
                           </td>
                         </tr>
                       ))}

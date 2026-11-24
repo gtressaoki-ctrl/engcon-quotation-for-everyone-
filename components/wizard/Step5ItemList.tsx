@@ -107,6 +107,11 @@ const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S80_SW: '1075472',
 };
 
+// 品番未定（DESIGN_REQUEST）の本体。定価は参考見積ベース。キー = maker|正規化model|mount|dc。
+const PROVISIONAL_BODY: Record<string, { name: string; price: number }> = {
+  'SUMITOMO|SH75X-7|DM|DC3': { name: 'EC209BS-QSM45Q-Direct connect-DC3-24V-H48（品番未定・定価参考）', price: 4010800 },
+};
+
 const CAT_DC3_TILTROTATOR_NOTE =
   '【備考】チルトローテータ利用には下記が必須となります。\n' +
   '①493-9769　CAT ADV　ジョイスティック　②624-3083　CAT SEA (3rd party tiltrotator)\n' +
@@ -222,7 +227,14 @@ export default function Step5ItemList() {
         ?? EC_ITEM_MAP[ec_model];
     }
     const ec = ecItemNo ? await lookup(ecItemNo) : {};
-    built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
+    // 品番未定（DESIGN_REQUEST）の本体は参考定価でカスタム明細として計上（SH75X-7 DMのDC3等）
+    const provBodyKey = `${machine_maker}|${machine_model.replace(/\s+/g, '').toUpperCase()}|${mount_type}|${dc_system}`;
+    const provBody = PROVISIONAL_BODY[provBodyKey];
+    if (provBody) {
+      built.push(makeItem(provBody.name, provBody.price, price_type, undefined, 1));
+    } else {
+      built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
+    }
 
     // 2. グリッパー（GRD。S規格別の汎用品番。SW・DM共通で1点のみ計上、hitch_item_noには左右されない）
     const grdInfo = GRD_ITEM_MAP[s_standard];
@@ -316,15 +328,17 @@ export default function Step5ItemList() {
         built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
       }
     } else if (machine_maker === 'SUMITOMO') {
-      // 住友建機のDC3構成（SH75X-7等。24V）。ホースプロテクションは構成に含まない。
+      // 住友建機のDC3構成（SH75X-7等。24V・BCM制御）。ホースプロテクションは構成に含まない。
       const ctrl = await lk('8002893');  // DC3-MAP0-BCM-24V
       built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8002893', 1, ctrl.description));
       if (mount_type === 'SW') {
-        const qsc = await lk('8003223');  // EXTDC3-MAP30-QH4-12V/24V
+        const qsc = await lk('8003223');  // EXTDC3-MAP30-QH4-12V/24V（S45用QSC）
         built.push(makeItem('QSCシステム', qsc.price, price_type, '8003223', 1, qsc.description));
         const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
         built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
       } else {
+        const mig = await lk('8002570');  // DMでもMIG2を計上
+        built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
         const qs = await lk('8000271');   // Qsafe
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
