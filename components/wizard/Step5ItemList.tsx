@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useWizardStore } from '@/lib/wizardStore';
 import { calculateSalesPrice, calculateRsmCustomerPrice, roundPrice } from '@/lib/pricing';
 import { supabase } from '@/lib/supabase';
-import { lookupCatalog, fuzzyLookupCatalog, getCatalogModels } from '@/lib/machineCatalog';
+import { lookupCatalog, fuzzyLookupCatalog, getCatalogModels, dc3ControlItemNo } from '@/lib/machineCatalog';
 import type { QuoteItem, PriceType } from '@/types/quote';
 import InventoryBadge from '@/components/InventoryBadge';
 import InventoryAsOfNote from '@/components/InventoryAsOfNote';
@@ -103,6 +103,7 @@ const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S60_DM: '1080267',
   S60_SW: '1075311',
   S70_SW: '1073879',
+  S70_DM: '1086744',
   S80_SW: '1075472',
 };
 
@@ -119,6 +120,10 @@ const CAT_DEALER_NOTE =
 // ディーラー見積向け：DC2→DC3移行期間の注意書き（見積書の備考に記載。メーカー・構成を問わず）
 const DEALER_DC_TRANSITION_NOTE =
   '【ご注意】現在DC3への移行期間のため、長期の商談の場合はDC2からDC3へ変更となる可能性があることご了承ください。';
+
+// BCM制御（8002893）のDC3構成はeMLを使わないため、マシンファンクション（ICT/マシンガイダンス）非対応。
+const BCM_NO_MACHINE_FUNCTION_NOTE =
+  '【ご注意】本構成はBCM制御（eML非搭載）のため、マシンファンクション（ICT／マシンガイダンス連携）には対応しません。';
 
 // 機種名から CAT のサイズクラス・シリーズを推定する（例: "320 GC" → size 320, GC系）
 function parseCatModelInfo(model: string): { size: number | null; isGC: boolean } {
@@ -310,21 +315,6 @@ export default function Step5ItemList() {
         const r = await lk(no);
         built.push(makeItem(fb, r.price, price_type, no, qty, r.description));
       }
-    } else if (machine_maker === 'KOMATSU') {
-      // KOMATSUのDC3構成（PC138US-12/PC138USi-12 等）
-      const ctrl = await lk('8002875');  // DC3-MAP4-eML-Komatsu PC-12
-      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8002875', 1, ctrl.description));
-      if (mount_type === 'SW') {
-        const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
-        built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
-        const qsc = await lk('8002137');  // EXTDC3-MAP30-QH5-12V/24V
-        built.push(makeItem('QSCシステム', qsc.price, price_type, '8002137', 1, qsc.description));
-      } else {
-        const qs = await lk('8000271');   // Qsafe
-        built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
-      }
-      const hose = await lk('540190');
-      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
     } else if (machine_maker === 'SUMITOMO') {
       // 住友建機のDC3構成（SH75X-7等。24V）。ホースプロテクションは構成に含まない。
       const ctrl = await lk('8002893');  // DC3-MAP0-BCM-24V
@@ -339,17 +329,31 @@ export default function Step5ItemList() {
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
     } else {
-      const dc3c = await lk('8001992');
-      built.push(makeItem('DC3コントロールシステム', dc3c.price, price_type, '8001992', 1, dc3c.description));
+      // 標準的なDC3構成（KOMATSU / KATO 等）。制御ユニットは機種で決定する。
+      //  ・eML系（Komatsu ICT）＝8002875（MIG2はSWのみ・ホース4本）
+      //  ・BCM系（PC200-11/PC128US-12/KATO HD 等）＝8002893（MIG2はSW/DM両方・ホースSW4本/DM2本）
+      const ctrlNo = dc3ControlItemNo(machine_maker, machine_model);
+      const isBcm = ctrlNo === '8002893';
+      const ctrl = await lk(ctrlNo);
+      built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, ctrlNo, 1, ctrl.description));
       if (mount_type === 'SW') {
-        const qsc = await lk('8002251');
-        built.push(makeItem('DC3 QSCシステム', qsc.price, price_type, '8002251', 1, qsc.description));
+        const mig = await lk('8002570');  // MIG2-DC3-CAN-MAP50
+        built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+        const qsc = await lk('8002137');  // EXTDC3-MAP30-QH5-12V/24V
+        built.push(makeItem('QSCシステム', qsc.price, price_type, '8002137', 1, qsc.description));
       } else {
-        const qs = await lk('8000271');
+        if (isBcm) {
+          const mig = await lk('8002570');  // BCM系はDMでもMIG2を計上
+          built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+        }
+        const qs = await lk('8000271');   // Qsafe
         built.push(makeItem('Qsafe', qs.price, price_type, '8000271', 1, qs.description));
       }
+      const hoseQty = (isBcm && mount_type === 'DM') ? 2 : 4;
       const hose = await lk('540190');
-      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', 4, hose.description));
+      built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', hoseQty, hose.description));
+      // BCM制御はマシンファンクション（ICT/マシンガイダンス）非対応のため注記する
+      if (isBcm) noteAdditions.push(BCM_NO_MACHINE_FUNCTION_NOTE);
     }
 
     // ディーラー見積は見積書の備考にもDC2→DC3移行の注意書きを記載する
