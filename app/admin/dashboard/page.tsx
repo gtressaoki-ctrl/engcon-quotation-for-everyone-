@@ -224,6 +224,12 @@ export default function AdminDashboard() {
     router.push('/wizard');
   }
 
+  function reviseQuoteTanpin() {
+    if (!detail) return;
+    loadQuote(detail.quote, detail.items);
+    router.push('/tanpin');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -402,6 +408,9 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <button onClick={reviseQuote} className="text-sm bg-primary hover:bg-neutral-800 text-white px-3 py-1.5 rounded">
                       この見積を改訂する
+                    </button>
+                    <button onClick={reviseQuoteTanpin} className="text-sm border border-gray-300 hover:bg-gray-100 text-gray-700 px-3 py-1.5 rounded">
+                      単品見積UIで改訂
                     </button>
                     <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
                   </div>
