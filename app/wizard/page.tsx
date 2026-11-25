@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useWizardStore } from '@/lib/wizardStore';
 import Step1Creator from '@/components/wizard/Step1Creator';
 import Step2Client from '@/components/wizard/Step2Client';
@@ -33,21 +34,35 @@ const ATTACH_STEPS = [
 ];
 
 export default function WizardPage() {
-  const { quote_mode, currentStep, setStep } = useWizardStore();
+  const router = useRouter();
+  const { quote_mode, currentStep, setStep, reset } = useWizardStore();
   const isAttach = quote_mode === 'attachment';
   const STEPS = isAttach ? ATTACH_STEPS : TILT_STEPS;
   const STEP_LABELS = isAttach ? ATTACH_LABELS : TILT_LABELS;
   const activeStep = Math.min(currentStep, STEPS.length);
   const StepComponent = STEPS[activeStep - 1];
 
+  function goHome() {
+    if (confirm('入力中の見積内容は保存されません。ホームに戻りますか？')) {
+      reset();
+      router.push('/');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="relative flex items-center justify-center gap-3 mb-4">
+            <button
+              onClick={goHome}
+              className="absolute left-0 flex items-center gap-1 text-sm text-gray-600 hover:text-black border border-gray-300 hover:bg-gray-100 rounded-lg px-3 py-1.5 transition"
+            >
+              🏠 ホーム
+            </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/engcon-logo-on-yellow.jpg" alt="engcon" className="h-8 rounded" />
-            <span className="text-sm text-gray-600">見積もり作成システム</span>
+            <span className="hidden sm:inline text-sm text-gray-600">見積もり作成システム</span>
           </div>
 
           <div className="flex overflow-x-auto gap-1 pb-2">
