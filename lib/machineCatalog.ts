@@ -25,6 +25,11 @@ export const MACHINE_CATALOG: MachineCatalogEntry[] = [
   { maker: 'CAT', model: '304SR', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1080310', hitch_item_no: '1065797' },
   { maker: 'CAT', model: '305CR', s_standard: 'S40', mount: 'DM', dc: 'DC2', ec_item_no: '1084265', hitch_item_no: '1065797' },
   { maker: 'CAT', model: '308SR', s_standard: 'S45', mount: 'SW', dc: 'DC2', ec_item_no: '1067734', hitch_item_no: '1081565' },
+  // CAT 308（S45・12V）のDC3構成。SW本体1081348・ヒッチ1087325(S45-Direct connect-DC3)、DM本体は品番未定（参考定価）。
+  { maker: 'CAT', model: '308 CR', s_standard: 'S45', mount: 'SW', dc: 'DC3', ec_item_no: '1081348', hitch_item_no: '1087325' },
+  { maker: 'CAT', model: '308 CR', s_standard: 'S45', mount: 'DM', dc: 'DC3', ec_item_no: null, hitch_item_no: null },
+  { maker: 'CAT', model: '308 SR', s_standard: 'S45', mount: 'SW', dc: 'DC3', ec_item_no: '1081348', hitch_item_no: '1087325' },
+  { maker: 'CAT', model: '308 SR', s_standard: 'S45', mount: 'DM', dc: 'DC3', ec_item_no: null, hitch_item_no: null },
   { maker: 'CAT', model: '313-7', s_standard: 'S60', mount: 'SW', dc: 'DC3', ec_item_no: '1075311', hitch_item_no: '1080537' },
   { maker: 'CAT', model: '313-7', s_standard: 'S60', mount: 'DM', dc: 'DC3', ec_item_no: '1080267', hitch_item_no: '1071055' },
   { maker: 'CAT', model: '315GC', s_standard: 'S60', mount: 'SW', dc: 'DC2', ec_item_no: '1067444', hitch_item_no: '1080182' },
@@ -324,6 +329,8 @@ const DC3_VERIFIED = new Set<string>([
   'SUMITOMO|SH75X-7',
   'KATO|HD514-9',
   'KATO|HD823-9',
+  'CAT|308CR',
+  'CAT|308SR',
 ]);
 
 // 指定機種のDC3構成が検証済みかどうか（表記ゆれ・結合表記 "A/B" を吸収して判定）

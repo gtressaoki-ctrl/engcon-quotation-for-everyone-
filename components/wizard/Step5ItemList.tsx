@@ -98,8 +98,8 @@ const CAT_DC3_HARNESS = '8001992';  // DC3コントロールシステム（DC3-M
 const CAT_DC3_QSC = '8002251';      // DC3 サンドイッチ用 QSC（EXTDC3-MAP32-QH5-CAT 313 NG）
 
 // DC3構成のチルトローテータ品番（S規格＋マウント方式別。CAT/KOMATSU等メーカー共通）
+// ※S45のSW/DMは電圧（12V/24V）で品番・定価が異なるため、下のresolveS45Dc3Bodyで別途解決する。
 const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
-  S45_SW: '1086682',
   S60_DM: '1080267',
   S60_SW: '1075311',
   S70_SW: '1073879',
@@ -107,10 +107,13 @@ const DC3_TILT_ROTATOR_MAP: Record<string, string> = {
   S80_SW: '1075472',
 };
 
-// 品番未定（DESIGN_REQUEST）の本体。定価は参考見積ベース。キー = maker|正規化model|mount|dc。
-const PROVISIONAL_BODY: Record<string, { name: string; price: number }> = {
-  'SUMITOMO|SH75X-7|DM|DC3': { name: 'EC209BS-QSM45Q-Direct connect-DC3-24V-H48（品番未定・定価参考）', price: 4010800 },
-};
+// S45のDC3本体を電圧別に解決する。
+//  ・SW：12V(CAT308)=1081348 / 24V(SH75)=1086682（品番あり）
+//  ・DM：いずれも品番未定（DESIGN_REQUEST）。定価4,010,800は参考値。
+function resolveS45Dc3Body(mount: string, is12V: boolean): { itemNo?: string; name?: string; price?: number } {
+  if (mount === 'SW') return { itemNo: is12V ? '1081348' : '1086682' };
+  return { name: `EC209BS-QSM45Q-Direct connect-DC3-${is12V ? '12V' : '24V'}-H48（品番未定・定価参考）`, price: 4010800 };
+}
 
 const CAT_DC3_TILTROTATOR_NOTE =
   '【備考】チルトローテータ利用には下記が必須となります。\n' +
@@ -204,6 +207,10 @@ export default function Step5ItemList() {
     const catalogEntry =
       lookupCatalog(machine_maker, machine_model, mount_type, dc_system) ??
       fuzzyLookupCatalog(machine_maker, machine_model, mount_type, dc_system);
+    // S45のDC3本体は電圧（12V/24V）で品番・定価が異なるため専用に解決する。
+    const s45Dc3Body = (dc_system === 'DC3' && s_standard === 'S45')
+      ? resolveS45Dc3Body(mount_type, is12VMachine(machine_maker, machine_model))
+      : undefined;
     // DC3はメーカーによらずマウント×S規格でチルトローテータ品番が決まる
     const dc3TiltOverride = (dc_system === 'DC3')
       ? DC3_TILT_ROTATOR_MAP[`${s_standard}_${mount_type}`]
@@ -211,7 +218,9 @@ export default function Step5ItemList() {
     // DM時のECモデル別 直付け（Direct connect）品番
     const dmDirect = DM_DIRECT_EC_ITEM_MAP[ec_model];
     let ecItemNo: string | undefined;
-    if (dc3TiltOverride) {
+    if (s45Dc3Body?.itemNo) {
+      ecItemNo = s45Dc3Body.itemNo;
+    } else if (dc3TiltOverride) {
       ecItemNo = dc3TiltOverride;
     } else if (mount_type === 'DM') {
       if (s_standard === 'S40') {
@@ -226,13 +235,11 @@ export default function Step5ItemList() {
       ecItemNo = (is12VMachine(machine_maker, machine_model) ? EC_ITEM_MAP_12V_SW[ec_model] : undefined)
         ?? EC_ITEM_MAP[ec_model];
     }
-    const ec = ecItemNo ? await lookup(ecItemNo) : {};
-    // 品番未定（DESIGN_REQUEST）の本体は参考定価でカスタム明細として計上（SH75X-7 DMのDC3等）
-    const provBodyKey = `${machine_maker}|${machine_model.replace(/\s+/g, '').toUpperCase()}|${mount_type}|${dc_system}`;
-    const provBody = PROVISIONAL_BODY[provBodyKey];
-    if (provBody) {
-      built.push(makeItem(provBody.name, provBody.price, price_type, undefined, 1));
+    // S45 DMのDC3本体は品番未定（DESIGN_REQUEST）。参考定価でカスタム明細として計上する。
+    if (s45Dc3Body?.name) {
+      built.push(makeItem(s45Dc3Body.name, s45Dc3Body.price, price_type, undefined, 1));
     } else {
+      const ec = ecItemNo ? await lookup(ecItemNo) : {};
       built.push(makeItem(`チルトローテータ本体（${ec_model}）`, ec.price, price_type, ecItemNo, 1, ec.description));
     }
 
@@ -266,7 +273,25 @@ export default function Step5ItemList() {
       const { size, isGC } = parseCatModelInfo(machine_model);
 
       if (dc_system === 'DC3') {
-        // DC3構成（MIG2なし／CAT ADVジョイスティック使用）
+        if (s_standard === 'S45' && size != null && size < 313) {
+          // CAT 308等（S45・12V）のDC3構成：eML1制御(8003090)＋MIG2。
+          //  ・SW：ヒッチ＋本体＋制御＋MIG2＋ホース4本（QSCは構成外）
+          //  ・DM：制御＋MIG2＋Qsafe＋ホース2本
+          const ctrl = await lk('8003090');  // DC3-MAP4-eML1
+          built.push(makeItem('DC3コントロールシステム', ctrl.price, price_type, '8003090', 1, ctrl.description));
+          const mig = await lk('8002570');    // MIG2-DC3-CAN-MAP50
+          built.push(makeItem('MIG2', mig.price, price_type, '8002570', 1, mig.description));
+          if (mount_type === 'DM') {
+            const qs = await lk(CAT_QSAFE);
+            built.push(makeItem('Qsafe', qs.price, price_type, CAT_QSAFE, 1, qs.description));
+          }
+          const hoseQty = mount_type === 'DM' ? 2 : 4;
+          const hose = await lk('540190');
+          built.push(makeItem('ホースプロテクション', hose.price, price_type, '540190', hoseQty, hose.description));
+          noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
+          if (client_type === 'dealer') noteAdditions.push(CAT_DEALER_NOTE);
+        } else {
+        // DC3構成（313以上。MIG2なし／CAT ADVジョイスティック使用）
         const harness = await lk(CAT_DC3_HARNESS);
         built.push(makeItem('DC3コントロールシステム', harness.price, price_type, CAT_DC3_HARNESS, 1, harness.description));
         if (mount_type === 'SW') {
@@ -281,6 +306,7 @@ export default function Step5ItemList() {
         noteAdditions.push(CAT_DC3_TILTROTATOR_NOTE);
         if (client_type === 'dealer') {
           noteAdditions.push(CAT_DEALER_NOTE);
+        }
         }
       } else {
         // DC2構成のコントロール系品目。CATの世代で使う品番が変わる。
